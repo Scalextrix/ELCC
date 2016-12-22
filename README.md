@@ -1,6 +1,6 @@
 # ELCC
 
-These files are curently in Python 2.7 and should work natively on Raspberry Pi 2/3
+These files are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite
 
 For the script to complete successfully your SolarCoin wallet must be FULLY unlocked, unlocked for staking is not sufficient
 
