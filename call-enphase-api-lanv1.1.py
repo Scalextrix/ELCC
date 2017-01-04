@@ -5,7 +5,7 @@ pulls production data and instructs the SolarCoin daemon to make a transaction t
 auto-unlocks on entry of wallet passphrase and relocks for staking after transaction issued"""
 
 __author__ = "Steven Campbell AKA Scalextrix"
-__copyright__ = "Copyright 2016, Steven Campbell"
+__copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
 __version__ = "1.1"
 
