@@ -15,7 +15,7 @@ import subprocess
 from urllib2 import urlopen
 import sqlite3
 
-slr_addr = raw_input ("What is your SolarCoin Wallet Passphrase: ")
+solarcoin_passphrase = raw_input ("What is your SolarCoin Wallet Passphrase: ")
 api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
 
 if os.path.isfile("APIweb.db"):
@@ -81,8 +81,8 @@ print("Initiating SolarCoin")
 energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 print("SolarCoin TXID:")
 subprocess.call(['solarcoind', 'walletlock'], shell=False)
-subprocess.call(['solarcoind', 'walletpassphrase', slr_addr, '9999999'], shell=False)
+subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
 subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '', '', energylifetime], shell=False)
 subprocess.call(['solarcoind', 'walletlock'], shell=False)
-subprocess.call(['solarcoind', 'walletpassphrase', slr_addr, '9999999', 'true'], shell=False)
+subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 print("Powered by Enphase Energy: https://enphase.com")
