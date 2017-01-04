@@ -3,9 +3,9 @@
 """call-enphase-api-web.py: Queries the Enphase Enlighten website, pulls production data and instructs the solarcoin daemon to make a transaction to record onto blockchain"""
 
 __author__ = "Steven Campbell AKA Scalextrix"
-__copyright__ = "Copyright 2016, Steven Campbell"
+__copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "1.0"
+__version__ = "1.1"
 
 import os.path
 import json
