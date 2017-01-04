@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""call-enphase-api-web.py: Queries the Enphase Enlighten website,
+"""call-enphase-api-web.py: Queries the Enphase Enlighten website, 
 pulls production data and instructs the solarcoin daemon to make a transaction to record onto blockchain,
 auto-unlocks on entry of wallet passphrase and relocks for staking after transaction issued"""
 
