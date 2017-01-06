@@ -8,6 +8,6 @@ NOTE: Scalextrix's web API is limited by the number/frequency of calls and is on
 
 The Enphase Envoy system also has a LAN API that can be used when the data collection can be made from with in the solar PV operators LAN, this is the preferred method as it is not centralized, has no usage/frequency tiers or charges.
 
-It is intended that low power IoT devices will be used for running the block-chain and gathering the solar PV generation data.  These scripts are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite or Debian, as ddesigned to work with solarcoind only (not Qt). 
+It is intended that low power IoT devices will be used for running the block-chain and gathering the solar PV generation data.  These scripts are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite or Debian, as designed to work with solarcoind only (not Qt). 
 
 Script will request the users wallet passphrase, unlock then put the wallet back to staking after the transaction is issued, the  script assumes the wallet is encrypted and that the wallet is unlocked for staking before the script is initiated.
