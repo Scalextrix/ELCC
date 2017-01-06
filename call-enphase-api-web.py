@@ -84,3 +84,5 @@ subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '
 subprocess.call(['solarcoind', 'walletlock'], shell=False)
 subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 print("Powered by Enphase Energy: https://enphase.com")
+
+del solarcoin_passphrase
