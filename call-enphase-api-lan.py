@@ -7,13 +7,14 @@ __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
 __version__ = "1.1"
 
+import getpass
 import os.path
 import json
 import subprocess
 from urllib2 import urlopen
 import sqlite3
 
-solarcoin_passphrase = raw_input ("What is your SolarCoin Wallet Passphrase: ")
+solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 
 if os.path.isfile("APIlan.db"):
         print("Found Enphase API LAN database")
