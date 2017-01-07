@@ -13,6 +13,7 @@ import json
 import subprocess
 from urllib2 import urlopen
 import sqlite3
+import gc
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
@@ -87,3 +88,4 @@ subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '999999
 print("Powered by Enphase Energy: https://enphase.com")
 
 del solarcoin_passphrase
+gc.collect()
