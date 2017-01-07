@@ -10,4 +10,4 @@ The Enphase Envoy system also has a LAN API that can be used when the data colle
 
 It is intended that low power IoT devices will be used for running the block-chain and gathering the solar PV generation data.  These scripts are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite or Debian, as designed to work with solarcoind only (not Qt). 
 
-Script will request the users wallet passphrase (passphrase is invisible while typed), unlock then put the wallet back to staking after the transaction is issued, the  script assumes the wallet is encrypted and that the wallet is unlocked for staking before the script is initiated.
+Script will request the users wallet passphrase (passphrase is invisible while typed), unlock then put the wallet back to staking after the transaction is issued, the  script assumes the wallet is encrypted and that the wallet is either fully locked, or unlocked for staking before the script is initiated.
