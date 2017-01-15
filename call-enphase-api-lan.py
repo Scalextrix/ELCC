@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-"""call-enphase-api-lan.py: Queries the Enphase Envoy device on a LAN, pulls production data and instructs the solarcoin daemon to make a transaction to record onto blockchain"""
+"""solarproductionapi.py: Queries the solar PV datalogger device on LAN or web, pulls production data and 
+instructs the solarcoin daemon to make a transaction to record onto blockchain"""
 
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "1.1"
+__version__ = "2.0"
 
 import getpass
 import os.path
