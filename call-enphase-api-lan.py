@@ -15,8 +15,6 @@ from urllib2 import urlopen
 import sqlite3
 import gc
 
-solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
-
 def lan_wan_choose():
 	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
 	if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
@@ -151,6 +149,8 @@ def wan_api():
 	print("Total Energy MWh: {:.6f}") .format(total_energy)
 
 lan_wan_choose()
+
+solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 
 print("Initiating SolarCoin")
 energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
