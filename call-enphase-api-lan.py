@@ -25,6 +25,7 @@ def lan_wan_choose():
 		sys.exit("Exiting")
 	else:
 		print("Sorry: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB' or 'exit' to Exit")
+		lan_wan_choose()
 
 def lan_api():
 	if os.path.isfile("API.db"):
