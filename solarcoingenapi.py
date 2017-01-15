@@ -19,9 +19,9 @@ import sys
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 
-if os.path.isfile(APIlan.db):
+if os.path.isfile("APIlan.db"):
 	lan_wan == "y"	
-elif os.path.isfile(APIweb.db):
+elif os.path.isfile("APIweb.db"):
 	lan_wan == "n"
 else:
 	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
