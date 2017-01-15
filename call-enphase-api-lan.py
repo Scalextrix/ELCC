@@ -84,6 +84,7 @@ def lan_api():
 	energy_today = float(energy_today)
 	total_energy = (energy_lifetime + energy_today) / 1000000
 	print("Total Energy MWh: {:.6f}") .format(total_energy)
+	global total_energy
 	
 def wan_api():
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
@@ -148,6 +149,7 @@ def wan_api():
 	energy_today = float(energy_today)
 	total_energy = (energy_lifetime + energy_today) / 1000000
 	print("Total Energy MWh: {:.6f}") .format(total_energy)
+	global total_energy
 
 lan_wan_choose()
 
