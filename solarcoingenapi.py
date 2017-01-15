@@ -19,7 +19,8 @@ import sys
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 
-def lan_api():
+lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
+if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	if os.path.isfile("APIlan.db"):
 		print("Found Enphase API LAN database")
 	elif os.path.isfile("APIweb.db"):
@@ -89,15 +90,6 @@ def lan_api():
 	longitude = str(longitude[0][0])
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
-	global envoy_ip
-	global solarcoin_address
-	global solar_panel
-	global solar_inverter
-	global peak_watt
-	global latitude
-	global longitude
-	global message
-	global rpi
 
 	print("Calling Enphase LAN API")
 	url = ("http://"+envoy_ip+"/api/v1/production")
@@ -111,11 +103,9 @@ def lan_api():
 	energy_today = float(energy_today)
 	total_energy = (energy_lifetime + energy_today) / 1000000
 	print("Total Energy MWh: {:.6f}") .format(total_energy)
-	global total_energy
 	
-def web_api():
+elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
-
 	if os.path.isfile("APIweb.db"):
 		print("Found Enphase API web database")
 	elif os.path.isfile("APIlan.db"):
@@ -189,16 +179,6 @@ def web_api():
 	longitude = str(longitude[0][0])
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
-	global system_id
-	global user_id
-	global solarcoin_address
-	global solar_panel
-	global solar_inverter
-	global peak_watt
-	global latitude
-	global longitude
-	global message
-	global rpi
 
 	print("Calling Enphase web API")
 	url = ("https://api.enphaseenergy.com/api/v2/systems/"
@@ -213,21 +193,10 @@ def web_api():
 	energy_today = float(energy_today)
 	total_energy = (energy_lifetime + energy_today) / 1000000
 	print("Total Energy MWh: {:.6f}") .format(total_energy)
-	global total_energy
 
-def lan_wan_choose():
-	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
-	if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
-        	lan_api()
-	elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
-		web_api()
-	elif lan_wan == "exit":
-		sys.exit("Exiting")
-	else:
-		print("Sorry: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB' or 'exit' to Exit")
-		lan_wan_choose()
+else:
+	sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
 
-lan_wan_choose()
 
 print("Initiating SolarCoin")
 energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
