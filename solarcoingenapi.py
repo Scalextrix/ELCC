@@ -23,7 +23,7 @@ if os.path.isfile("APIlan.db"):
 	lan_wan == "y"	
 elif os.path.isfile("APIweb.db"):
 	lan_wan == "n"
-elif os.path.isfile("APIlan.db") and os.path.isfile("APIweb.db")
+elif os.path.isfile("APIlan.db") and os.path.isfile("APIweb.db"):
 	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
 else:
 	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
