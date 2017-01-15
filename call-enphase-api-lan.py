@@ -20,8 +20,9 @@ solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Pas
 
 def lan_api():
 	if os.path.isfile("APIlan.db"):
-		print("Found Enphase API database")
+		print("Found Enphase API LAN database")
 	elif os.path.isfile("APIweb.db"):
+		print("Found Enphase API web database")
                 envoy_ip = raw_input ("What is your Enphase Envoy IP address: ")
                 conn = sqlite3.connect("APIweb.db")
                 c = conn.cursor()
@@ -117,6 +118,7 @@ def web_api():
 	if os.path.isfile("APIweb.db"):
 		print("Found Enphase API web database")
 	elif os.path.isfile("APIlan.db"):
+		print("Found Enphase API LAN database")
                 system_id = raw_input ("What is your Enphase System ID: ")
 		user_id = raw_input ("What is your Enphase User ID: ")
 		conn = sqlite3.connect("APIlan.db")
