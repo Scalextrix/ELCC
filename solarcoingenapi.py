@@ -19,9 +19,7 @@ import sys
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 
-if os.path.isfile("APIlan.db") and os.path.isfile("APIweb.db"):
-	lan_wan = raw_input("LAN and Web databases exist: Is the Enphase Envoy on your LAN: ").lower()
-elif os.path.isfile("APIlan.db"):
+if os.path.isfile("APIlan.db"):
 	lan_wan = "y"	
 elif os.path.isfile("APIweb.db"):
 	lan_wan = "n"
@@ -31,34 +29,6 @@ else:
 if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	if os.path.isfile("APIlan.db"):
 		print("Found Enphase API LAN database")
-	elif os.path.isfile("APIweb.db"):
-		print("Found Enphase API web database")
-                envoy_ip = raw_input ("What is your Enphase Envoy IP address: ")
-                conn = sqlite3.connect("APIweb.db")
-                c = conn.cursor()
-                solarcoin_address = c.execute('select SLRaddress from SYSTEMDETAILS').fetchall()
-                solar_panel = c.execute('select panelid from SYSTEMDETAILS').fetchall()
-                solar_inverter = c.execute('select inverterid from SYSTEMDETAILS').fetchall()
-                peak_watt = c.execute('select pkwatt from SYSTEMDETAILS').fetchall()
-                latitude = c.execute('select lat from SYSTEMDETAILS').fetchall()
-                longitude = c.execute('select lon from SYSTEMDETAILS').fetchall()
-                message = c.execute('select msg from SYSTEMDETAILS').fetchall()
-                rpi = c.execute('select pi from SYSTEMDETAILS').fetchall()
-                conn.close()
-                solarcoin_address = str(solarcoin_address[0][0])
-                solar_panel = str(solar_panel[0][0])
-                solar_inverter = str(solar_inverter[0][0])
-                peak_watt = str(peak_watt[0][0])
-                latitude = str(latitude[0][0])
-                longitude = str(longitude[0][0])
-                message = str(message[0][0])
-                rpi = str(rpi[0][0])
-                conn = sqlite3.connect("APIlan.db")
-		c = conn.cursor()
-		c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (envoyip TEXT, SLRaddress TEXT, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
-		c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?);", (envoy_ip, solarcoin_address, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
-		conn.commit()		
-		conn.close()
 	else:
 		envoy_ip = raw_input ("What is your Enphase Envoy IP address: ")
 		solarcoin_address = raw_input ("What is your SolarCoin Address: ")
@@ -116,35 +86,6 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
 	if os.path.isfile("APIweb.db"):
 		print("Found Enphase API web database")
-	elif os.path.isfile("APIlan.db"):
-		print("Found Enphase API LAN database")
-                system_id = raw_input ("What is your Enphase System ID: ")
-		user_id = raw_input ("What is your Enphase User ID: ")
-		conn = sqlite3.connect("APIlan.db")
-                c = conn.cursor()
-                solarcoin_address = c.execute('select SLRaddress from SYSTEMDETAILS').fetchall()
-                solar_panel = c.execute('select panelid from SYSTEMDETAILS').fetchall()
-                solar_inverter = c.execute('select inverterid from SYSTEMDETAILS').fetchall()
-                peak_watt = c.execute('select pkwatt from SYSTEMDETAILS').fetchall()
-                latitude = c.execute('select lat from SYSTEMDETAILS').fetchall()
-                longitude = c.execute('select lon from SYSTEMDETAILS').fetchall()
-                message = c.execute('select msg from SYSTEMDETAILS').fetchall()
-                rpi = c.execute('select pi from SYSTEMDETAILS').fetchall()
-                conn.close()
-                solarcoin_address = str(solarcoin_address[0][0])
-                solar_panel = str(solar_panel[0][0])
-                solar_inverter = str(solar_inverter[0][0])
-                peak_watt = str(peak_watt[0][0])
-                latitude = str(latitude[0][0])
-                longitude = str(longitude[0][0])
-                message = str(message[0][0])
-                rpi = str(rpi[0][0])
-                conn = sqlite3.connect("APIweb.db")
-		c = conn.cursor()
-		c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (systemid TEXT, userid TEXT, SLRaddress TEXT, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
-		c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?);", (system_id, user_id, solarcoin_address, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
-		conn.commit()		
-		conn.close()
 	else:
 		system_id = raw_input ("What is your Enphase System ID: ")
 		user_id = raw_input ("What is your Enphase User ID: ")
