@@ -6,16 +6,22 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "2.0"
+__version__ = "2.1"
 
-import getpass
-import os.path
-import json
-import subprocess
-from urllib2 import urlopen
-import sqlite3
 import gc
+import getpass
+import json
+import os.path
+import subprocess
+import sqlite3
 import sys
+import time
+from urllib2 import urlopen
+
+# Sets the frequency with which the reports will be made to block-chain, value in MWh
+energy_reporting_increment = 0.01
+# Sets the frequency that the solar inverter is queried, value in Seconds
+inverter_query = 600
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 
@@ -69,18 +75,61 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
 
-	print("Calling Enphase LAN API")
-	url = ("http://"+envoy_ip+"/api/v1/production")
-	inverter = urlopen(url)
+	while True:
+		print("Calling Enphase LAN API")
+		url = ("http://"+envoy_ip+"/api/v1/production")
+		inverter = urlopen(url)
 
-	print("Loading JSON data")
-	data = json.load(inverter)
-	energy_lifetime = data['wattHoursLifetime']
-	energy_today = data['wattHoursToday']
-	energy_lifetime = float(energy_lifetime)
-	energy_today = float(energy_today)
-	total_energy = (energy_lifetime + energy_today) / 1000000
-	print("Total Energy MWh: {:.6f}") .format(total_energy)
+		print("Loading JSON data")
+		data = json.load(inverter)
+		energy_lifetime = data['wattHoursLifetime']
+		energy_today = data['wattHoursToday']
+		energy_lifetime = float(energy_lifetime)
+		energy_today = float(energy_today)
+		total_energy = (energy_lifetime + energy_today) / 1000000
+		print("Total Energy MWh: {:.6f}") .format(total_energy)
+
+		conn = sqlite3.connect("APIlan.db")
+		c = conn.cursor()
+		c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
+		c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+		conn.commit()		
+		conn.close()
+
+		conn = sqlite3.connect("APIlan.db")
+		c = conn.cursor()
+		row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
+		start_energy = c.execute('select totalenergy from ENERGYLOG').fetchone()
+		end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
+		conn.close()
+		start_energy = str(start_energy)[1:9]
+		end_energy = str(end_energy)[1:9]
+		start_energy = float(start_energy)
+		end_energy = float(end_energy)
+
+	
+		if end_energy >= (start_energy + energy_reporting_increment):
+			print("Initiating SolarCoin")
+			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
+			print("SolarCoin TXID:")
+			subprocess.call(['solarcoind', 'walletlock'], shell=False)
+			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
+			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '', '', energylifetime], shell=False)
+			subprocess.call(['solarcoind', 'walletlock'], shell=False)
+			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+			print("Powered by Enphase Energy: https://enphase.com")
+			
+			conn= sqlite3.connect("APIlan.db")
+			c = conn.cursor()
+			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
+			conn.commit()		
+			conn.close()
+			gc.collect()		
+		else:
+                        print "Waiting"
+			time.sleep(inverter_query)
+
+		
 	
 elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
@@ -129,35 +178,61 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
 
-	print("Calling Enphase web API")
-	url = ("https://api.enphaseenergy.com/api/v2/systems/"
-	       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
-	inverter = urlopen(url)
+	while True:
+		print("Calling Enphase web API")
+		url = ("https://api.enphaseenergy.com/api/v2/systems/"
+		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
+		inverter = urlopen(url)
 
-	print("Loading JSON data")
-	data = json.load(inverter)
-	energy_lifetime = data['energy_lifetime']
-	energy_today = data['energy_today']
-	energy_lifetime = float(energy_lifetime)
-	energy_today = float(energy_today)
-	total_energy = (energy_lifetime + energy_today) / 1000000
-	print("Total Energy MWh: {:.6f}") .format(total_energy)
+		print("Loading JSON data")
+		data = json.load(inverter)
+		energy_lifetime = data['energy_lifetime']
+		energy_today = data['energy_today']
+		energy_lifetime = float(energy_lifetime)
+		energy_today = float(energy_today)
+		total_energy = (energy_lifetime + energy_today) / 1000000
+		print("Total Energy MWh: {:.6f}") .format(total_energy)
+
+		conn = sqlite3.connect("APIweb.db")
+		c = conn.cursor()
+		c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
+		c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+		conn.commit()		
+		conn.close()
+
+		conn = sqlite3.connect("APIweb.db")
+		c = conn.cursor()
+		row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
+		start_energy = c.execute('select totalenergy from ENERGYLOG').fetchone()
+		end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
+		conn.close()
+		start_energy = str(start_energy)[1:9]
+		end_energy = str(end_energy)[1:9]
+		start_energy = float(start_energy)
+		end_energy = float(end_energy)
+		
+		if end_energy >= (start_energy + energy_reporting_increment):
+			print("Initiating SolarCoin")
+			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
+			print("SolarCoin TXID:")
+			subprocess.call(['solarcoind', 'walletlock'], shell=False)
+			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
+			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '', '', energylifetime], shell=False)
+			subprocess.call(['solarcoind', 'walletlock'], shell=False)
+			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+			print("Powered by Enphase Energy: https://enphase.com")
+			
+			conn= sqlite3.connect("APIlan.db")
+			c = conn.cursor()
+			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
+			conn.commit()		
+			conn.close()
+			gc.collect()			
+		else:
+                        print "Waiting"
+			time.sleep(inverter_query)
 
 else:
-	sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
-
-
-print("Initiating SolarCoin")
-energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
-print("SolarCoin TXID:")
-subprocess.call(['solarcoind', 'walletlock'], shell=False)
-subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '', '', energylifetime], shell=False)
-subprocess.call(['solarcoind', 'walletlock'], shell=False)
-subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-print("Powered by Enphase Energy: https://enphase.com")
-
-del solarcoin_passphrase
-gc.collect()
-
-
+	del solarcoin_passphrase
+	gc.collect()
+sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
