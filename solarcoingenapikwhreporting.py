@@ -235,4 +235,4 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 else:
 	del solarcoin_passphrase
 	gc.collect()
-sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
+	sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
