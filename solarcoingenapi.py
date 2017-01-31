@@ -100,8 +100,8 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		start_energy = c.execute('select totalenergy from ENERGYLOG').fetchone()
 		end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
 		conn.close()
-		start_energy = str(start_energy)[1:9]
-		end_energy = str(end_energy)[1:9]
+		start_energy = str(start_energy)[1:8]
+		end_energy = str(end_energy)[1:8]
 		start_energy = float(start_energy)
 		end_energy = float(end_energy)
 
@@ -124,7 +124,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			conn.close()
 			gc.collect()		
 		else:
-                        print "Waiting"
+                        print "Waiting %s seconds" % inverter_query
 			time.sleep(inverter_query)
 
 		
@@ -204,8 +204,8 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		start_energy = c.execute('select totalenergy from ENERGYLOG').fetchone()
 		end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
 		conn.close()
-		start_energy = str(start_energy)[1:9]
-		end_energy = str(end_energy)[1:9]
+		start_energy = str(start_energy)[1:8]
+		end_energy = str(end_energy)[1:8]
 		start_energy = float(start_energy)
 		end_energy = float(end_energy)
 		
@@ -227,7 +227,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			conn.close()
 			gc.collect()			
 		else:
-                        print "Waiting"
+                        print "Waiting %s seconds" % inverter_query
 			time.sleep(inverter_query)
 
 else:
