@@ -18,7 +18,7 @@ import sys
 import time
 from urllib2 import urlopen
 
-# Sets the frequency with which the reports will be made to block-chain, value in MWh
+# Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 energy_reporting_increment = 0.01
 # Sets the frequency that the solar inverter is queried, value in Seconds
 inverter_query = 600
