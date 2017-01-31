@@ -82,11 +82,9 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 
 		print("Loading JSON data")
 		data = json.load(inverter)
-		energy_lifetime = data['wattHoursLifetime']
-		energy_today = data['wattHoursToday']
-		energy_lifetime = float(energy_lifetime)
-		energy_today = float(energy_today)
-		total_energy = (energy_lifetime + energy_today) / 1000000
+		total_energy = data['wattHoursLifetime']
+		total_energy = float(total_energy)
+		total_energy = total_energy / 1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
 		conn = sqlite3.connect("APIlan.db")
