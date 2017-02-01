@@ -24,6 +24,8 @@ energy_reporting_increment = 0.01
 inverter_query = 600
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
+subprocess.call(['solarcoind', 'walletlock'], shell=False)
+subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
 if os.path.isfile("APIlan.db"):
 	lan_wan = "y"	
