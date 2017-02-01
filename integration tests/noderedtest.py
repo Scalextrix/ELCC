@@ -123,7 +123,7 @@ while True:
 		gc.collect()		
 	else:
                 # If 10kWh has not been produced, wait some time, then start the LOOP again
-                print "Waiting %s seconds" 5 inverter_query
+                print "Waiting %s seconds" % inverter_query
 		time.sleep(inverter_query)
 
 		
