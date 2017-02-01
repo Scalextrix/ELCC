@@ -1,1 +1,1 @@
-Files used for integrating with different inverter platfoms can be placed here for collaboration purposes
+Files used for integrating with different inverter platforms can be placed here for collaboration purposes
