@@ -97,8 +97,8 @@ while True:
 	end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
 	conn.close()
 	# Convert the list type Watt-hour values extracted from the database to floating point numbers
-	start_energy = str(start_energy)[1:9]
-	end_energy = str(end_energy)[1:9]
+	start_energy = str(start_energy)[1:-2]
+	end_energy = str(end_energy)[1:-2]
 	start_energy = float(start_energy)
 	end_energy = float(end_energy)
 
