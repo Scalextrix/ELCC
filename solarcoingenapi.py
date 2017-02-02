@@ -25,7 +25,7 @@ solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Pas
 try:
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-except subprocess.CheckProcessError:
+except subprocess.CalledProcessError:
 	sys.exit("Exiting")
 	
 if os.path.isfile("APIlan.db"):
