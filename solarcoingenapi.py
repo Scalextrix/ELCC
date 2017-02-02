@@ -20,8 +20,6 @@ from urllib2 import urlopen
 
 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 energy_reporting_increment = 0.01
-# Sets the frequency that the solar inverter is queried, value in Seconds
-inverter_query = 600
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 try:
@@ -45,7 +43,13 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		solarcoin_address = raw_input ("What is your SolarCoin Address: ")
 		solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
 		solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
-		peak_watt = raw_input ("In kW (kilo-Watts), what is the peak output of your system: ")
+		while True:
+			peak_watt = raw_input ("In kW (kilo-Watts), what is the peak output of your system: ")
+			try:
+				peak_watt = float(peak_watt)
+				break
+			except ValueError:
+				print "Error: You must enter numbers and decimal point only e.g. 3.975"
 		latitude = raw_input ("What is the Latitude of your installation: ")
 		longitude = raw_input ("What is the Longitude of your installation: ")
 		message = raw_input ("Add an optional message describing your system: ")
@@ -79,6 +83,13 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	longitude = str(longitude[0][0])
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
+	
+	# Sets the frequency that the solar inverter is queried, value in Seconds
+	system_watt = float(peak_watt)
+	if system_watt <= 1000:
+		inverter_query = int(86400 / system_watt)
+	else:
+    		inverter_query = 86
 
 	while True:
 		print("Calling Enphase LAN API")
@@ -144,7 +155,13 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		solarcoin_address = raw_input ("What is your SolarCoin Address: ")
 		solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
 		solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
-		peak_watt = raw_input ("In kW (kilo-Watts), what is the peak output of your system: ")
+		while True:
+			peak_watt = raw_input ("In kW (kilo-Watts), what is the peak output of your system: ")
+			try:
+				peak_watt = float(peak_watt)
+				break
+			except ValueError:
+				print "Error: You must enter numbers and decimal point only e.g. 3.975"
 		latitude = raw_input ("What is the Latitude of your installation: ")
 		longitude = raw_input ("What is the Longitude of your installation: ")
 		message = raw_input ("Add an optional message describing your system: ")
@@ -180,7 +197,14 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	longitude = str(longitude[0][0])
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
-
+	
+	# Sets the frequency that the solar inverter is queried, value in Seconds
+	system_watt = float(peak_watt)
+	if system_watt <= 1000:
+		inverter_query = int(86400 / system_watt)
+	else:
+    		inverter_query = 86
+		
 	while True:
 		print("Calling Enphase web API")
 		url = ("https://api.enphaseenergy.com/api/v2/systems/"
