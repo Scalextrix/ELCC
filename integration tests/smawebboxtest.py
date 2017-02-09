@@ -8,14 +8,14 @@ __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
 __version__ = "2.0"
 
-import getpass
-import os.path
-import json
-import subprocess
-from urllib2 import urlopen
-import sqlite3
 import gc
+import getpass
+import json
+import os.path
+import subprocess
+import sqlite3
 import sys
+from urllib2 import urlopen
 
 # solarcoin passphrase must be provided for usine in subprocess.call()
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
