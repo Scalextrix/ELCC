@@ -1,3 +1,5 @@
+www.enphase.com  Powered by Enphase Energy
+
 The Enphase Enlighten system has a web API which can be used to pull the information from outside of the users LAN,
 this may be useful for owners of solar PV systems in multiple locations/on different LANs.
 This version relies on an app that is published on https://developer.enphase.com/docs/quickstart.html, 
