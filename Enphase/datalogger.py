@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""solarcoingenapi.py: Queries the solar PV datalogger device on LAN or web, pulls production data and 
+"""datalogger.py: Queries the solar PV datalogger device on LAN or web, pulls production data and 
 instructs the solarcoin daemon to make a transaction to record onto blockchain"""
 
 __author__ = "Steven Campbell AKA Scalextrix"
