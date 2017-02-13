@@ -87,9 +87,9 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	# Sets the frequency that the solar inverter is queried, value in Seconds
 	system_watt = float(peak_watt)
 	if system_watt <= 1000:
-		inverter_query = int(86400 / system_watt)
+		inverter_query_increment = int(86400 / system_watt)
 	else:
-    		inverter_query = 86
+    		inverter_query_increment = 86
 
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
@@ -141,8 +141,9 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			conn.close()
 			gc.collect()		
 		else:
-			print "Waiting %s seconds" % inverter_query
-			time.sleep(inverter_query)
+			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
+			print ("Waiting for %s more kWh to be generated, will check again in %s seconds" % (energy_left, inverter_query_increment))
+			time.sleep(inverter_query_increment)
 
 		
 	
@@ -202,9 +203,9 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	# Sets the frequency that the solar inverter is queried, value in Seconds
 	system_watt = float(peak_watt)
 	if system_watt <= 1000:
-		inverter_query = int(86400 / system_watt)
+		inverter_query_increment = int(86400 / system_watt)
 	else:
-    		inverter_query = 86
+    		inverter_query_increment = 86
 		
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
@@ -258,8 +259,9 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			conn.close()
 			gc.collect()			
 		else:
-			print "Waiting %s seconds" % inverter_query
-			time.sleep(inverter_query)
+			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
+			print ("Waiting for %s more kWh to be generated, will check again in %s seconds" % (energy_left, inverter_query_increment))
+			time.sleep(inverter_query_increment)
 
 else:
 	del solarcoin_passphrase
