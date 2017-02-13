@@ -140,7 +140,8 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			conn.close()
 			gc.collect()		
 		else:
-                        print "Waiting %s seconds" % inverter_query
+                        now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+			print ("%s Waiting %s seconds" % (now_time, inverter_query))
 			time.sleep(inverter_query)
 
 		
@@ -256,10 +257,11 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			conn.close()
 			gc.collect()			
 		else:
-                        print "Waiting %s seconds" % inverter_query
+                        now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+			print ("%s Waiting %s seconds" % (now_time, inverter_query))
 			time.sleep(inverter_query)
 
 else:
 	del solarcoin_passphrase
 	gc.collect()
-sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
+	sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
