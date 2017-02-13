@@ -26,7 +26,7 @@ try:
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 except subprocess.CalledProcessError:
-	sys.exit("Exiting")
+	sys.exit("Exiting: SOLARCOIN WALLET IS FULLY LOCKED AND NOT STAKING")
 	
 if os.path.isfile("APIlan.db"):
 	lan_wan = "y"	
@@ -92,7 +92,8 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
     		inverter_query = 86
 
 	while True:
-		print("Calling Enphase LAN API")
+		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+		print "%s Calling Enphase LAN API" % now_time
 		url = ("http://"+envoy_ip+"/api/v1/production")
 		inverter = urlopen(url)
 
@@ -140,8 +141,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			conn.close()
 			gc.collect()		
 		else:
-                        now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-			print ("%s Waiting %s seconds" % (now_time, inverter_query))
+			print "Waiting %s seconds" % inverter_query
 			time.sleep(inverter_query)
 
 		
@@ -207,7 +207,8 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
     		inverter_query = 86
 		
 	while True:
-		print("Calling Enphase web API")
+		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+		print "%s Calling Enphase web API" % now_time
 		url = ("https://api.enphaseenergy.com/api/v2/systems/"
 		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
 		inverter = urlopen(url)
@@ -257,8 +258,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			conn.close()
 			gc.collect()			
 		else:
-                        now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-			print ("%s Waiting %s seconds" % (now_time, inverter_query))
+			print "Waiting %s seconds" % inverter_query
 			time.sleep(inverter_query)
 
 else:
