@@ -4,6 +4,8 @@ This repository contains code that is intended to allow a user of a SolarCoin cr
 
 It is intended that low power IoT devices will be used for running the block-chain and gathering the solar PV generation data.  These scripts are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite or Debian, it is designed to work with solarcoind only (not Qt).  Solarcoin repo available from https://github.com/onsightit/solarcoin
 
+Instructions to compile SolarCoin daemon on Raspberry Pi: https://github.com/Scalextrix/SolarCoin-Raspberry-Pi-Node
+
 See your inverter manufacturer directory for specific integrations.
 Script asks for wallet passphrase (passphrase is invisible while typed), then asks for LAN or Web API (if available), it will unlock the wallet then put the wallet back to staking after the transaction is issued; the  script assumes the wallet is encrypted and that the wallet is either fully locked, or unlocked for staking before the script is initiated.
 The solar inverter will be queried relative to the solar installation kWp (kilo-Watts peak) with large systems more frequently up to a maximum of 86 seconds, small systems as little as once every 20 days; if the amount of energy collected equals or exceeds 10kWh since the last check then the total system MWh will report to the block-chain; otherwise the solar inverter will be queried every x seconds until the total exceeds 10kWh.  Once the MWh of the system is reported to the block-chain, a new MWh checkpoint is set and the process re-starts querying every x seconds.
