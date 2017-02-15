@@ -142,7 +142,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			gc.collect()		
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
-			print ("Waiting for %s more kWh to be generated, will check again in %s seconds" % (energy_left, inverter_query_increment))
+			print ("Waiting for another {:.3f} kWh to be generated, will check again in {} seconds") .format(energy_left, inverter_query_increment)
 			time.sleep(inverter_query_increment)
 
 		
@@ -260,7 +260,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			gc.collect()			
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
-			print ("Waiting for %s more kWh to be generated, will check again in %s seconds" % (energy_left, inverter_query_increment))
+			print ("Waiting for another {:.3f} kWh to be generated, will check again in {} seconds") .format(energy_left, inverter_query_increment)
 			time.sleep(inverter_query_increment)
 
 else:
