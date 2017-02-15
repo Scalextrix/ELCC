@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+"""noderedtest.py: Queries the solar PV datalogger device on LAN or web, pulls production data and 
+instructs the solarcoin daemon to make a transaction to record onto blockchain"""
+
+__author__ = "Steven Campbell AKA Scalextrix"
+__copyright__ = "Copyright 2017, Steven Campbell"
+__license__ = "The Unlicense"
+__version__ = "2.0"
+
 # import python libraries we need for the program to work
 import gc
 import getpass
