@@ -252,7 +252,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 			print("Powered by Enphase Energy: https://enphase.com")
 			
-			conn= sqlite3.connect("APIlan.db")
+			conn= sqlite3.connect("APIweb.db")
 			c = conn.cursor()
 			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 			conn.commit()		
