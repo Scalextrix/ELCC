@@ -93,7 +93,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-		print "%s Calling Enphase LAN API" % now_time
+		print ("*** {} Calling Enphase LAN API  ***") .format(now_time)
 		url = ("http://"+envoy_ip+"/api/v1/production")
 		inverter = urlopen(url)
 
@@ -219,7 +219,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-		print "%s Calling Enphase web API" % now_time
+		print ("*** {} Calling Enphase web API ***") .format(now_time)
 		url = ("https://api.enphaseenergy.com/api/v2/systems/"
 		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
 		inverter = urlopen(url)
