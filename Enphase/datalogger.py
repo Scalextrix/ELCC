@@ -139,7 +139,17 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 			conn.commit()		
 			conn.close()
-			gc.collect()		
+			
+			conn = sqlite3.connect("APIlan.db")
+                        c = conn.cursor()
+                        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
+                        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+                        conn.commit()
+                        conn.close()
+
+                        print ("Waiting {} seconds") .format(inverter_query_increment)
+                        time.sleep(inverter_query_increment)
+			gc.collect()
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
 			print ("Waiting for another {:.3f} kWh to be generated, will check again in {} seconds") .format(energy_left, inverter_query_increment)
@@ -257,6 +267,16 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 			conn.commit()		
 			conn.close()
+			
+			conn = sqlite3.connect("APIweb.db")
+                        c = conn.cursor()
+                        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
+                        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+                        conn.commit()
+                        conn.close()
+
+                        print ("Waiting {} seconds") .format(inverter_query_increment)
+                        time.sleep(inverter_query_increment)
 			gc.collect()			
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
