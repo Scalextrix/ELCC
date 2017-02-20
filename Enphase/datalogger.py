@@ -143,10 +143,6 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			c = conn.cursor()
 			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 			conn.commit()		
-			conn.close()
-			
-			conn = sqlite3.connect("APIlan.db")
-                        c = conn.cursor()
                         c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
                         c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
                         conn.commit()
@@ -271,10 +267,6 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			c = conn.cursor()
 			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 			conn.commit()		
-			conn.close()
-			
-			conn = sqlite3.connect("APIweb.db")
-                        c = conn.cursor()
                         c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
                         c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
                         conn.commit()
