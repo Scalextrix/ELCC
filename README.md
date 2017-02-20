@@ -12,4 +12,4 @@ The solar inverter will be queried relative to the solar installation kWp (kilo-
 
 Example Transaction: https://chainz.cryptoid.info/slr/tx.dws?b391aa1bcb0aefd8e8f661b1acd6fd0b784c0e8856ed6c2d8546b6246d623ae8.htm
 
-Any tips to my SLR address: 8cESoZyjFvx2Deq6VjQLqPfAwu8UXjcBkK
+Any tips to my SLR address: 8cESoZyjFvx2Deq6VjQLqPfAwu8UXjcBkK  Thanks
