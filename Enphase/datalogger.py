@@ -26,7 +26,9 @@ try:
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 except subprocess.CalledProcessError:
-	sys.exit("Exiting: SOLARCOIN WALLET IS FULLY LOCKED AND NOT STAKING")
+	print "Incorrect Passphrase: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
+        time.sleep(10)
+	sys.exit()
 	
 if os.path.isfile("APIlan.db"):
 	lan_wan = "y"	
@@ -286,4 +288,6 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 else:
 	del solarcoin_passphrase
 	gc.collect()
-	sys.exit("Exiting: You must choose 'y', 'yes', 'LAN' or 'n', 'no', 'WEB'")
+	print "Exiting in 10 seconds: You must choose 'y' or 'n'"
+        time.sleep(10)
+	sys.exit()
