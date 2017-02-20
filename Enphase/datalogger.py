@@ -22,6 +22,7 @@ from urllib2 import urlopen
 energy_reporting_increment = 0.01
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
+print "Testing SolarCoin Wallet Passphrase, locking wallet..."
 try:
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
@@ -29,6 +30,8 @@ except subprocess.CalledProcessError:
 	print "Incorrect Passphrase: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
         time.sleep(10)
 	sys.exit()
+else:
+        print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
 	
 if os.path.isfile("APIlan.db"):
 	lan_wan = "y"	
