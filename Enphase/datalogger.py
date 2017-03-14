@@ -92,7 +92,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	# Sets the frequency that the solar inverter is queried, value in Seconds
 	system_watt = float(peak_watt)
 	if system_watt <= 1000:
-		inverter_query_increment = int(86400 / system_watt)
+		inverter_query_increment = float(86400 / system_watt)
 	else:
     		inverter_query_increment = 86
 
@@ -148,12 +148,12 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
                         conn.commit()
                         conn.close()
 
-                        print ("Waiting {} seconds") .format(inverter_query_increment)
+                        print ("Waiting {:.0f} seconds before checking again (approx {:.2F} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
                         time.sleep(inverter_query_increment)
 			gc.collect()
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
-			print ("Waiting for another {:.3f} kWh to be generated, will check again in {} seconds") .format(energy_left, inverter_query_increment)
+			print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2F} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 			time.sleep(inverter_query_increment)
 
 		
@@ -211,12 +211,12 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	message = str(message[0][0])
 	rpi = str(rpi[0][0])
 	
-	# Sets the frequency that the solar inverter is queried, value in Seconds
+	# Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within Enphase free Watt plan https://developer.enphase.com/plans 
 	system_watt = float(peak_watt)
-	if system_watt <= 1000:
-		inverter_query_increment = int(86400 / system_watt)
+	if system_watt <= 288:
+		inverter_query_increment = float(86400 / system_watt)
 	else:
-    		inverter_query_increment = 86
+    		inverter_query_increment = 300
 		
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
@@ -272,12 +272,12 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
                         conn.commit()
                         conn.close()
 
-                        print ("Waiting {} seconds") .format(inverter_query_increment)
+                        print ("Waiting {:.0f} seconds before checking again (approx {:.2f} days") .format(inverter_query_increment, (inverter_query_increment/86400))
                         time.sleep(inverter_query_increment)
 			gc.collect()			
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
-			print ("Waiting for another {:.3f} kWh to be generated, will check again in {} seconds") .format(energy_left, inverter_query_increment)
+			print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 			time.sleep(inverter_query_increment)
 
 else:
