@@ -127,14 +127,13 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		start_energy = float(start_energy)
 		end_energy = float(end_energy)
 
-	
 		if end_energy >= (start_energy + energy_reporting_increment):
 			print("Initiating SolarCoin")
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 			print("SolarCoin TXID:")
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.00001', '', '', energylifetime], shell=False)
+			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.01', '', '', energylifetime], shell=False)
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 			print("Powered by Enphase Energy: https://enphase.com")
@@ -154,9 +153,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		else:
 			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
 			print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2F} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
-			time.sleep(inverter_query_increment)
-
-		
+			time.sleep(inverter_query_increment)		
 	
 elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
@@ -258,7 +255,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			print("SolarCoin TXID:")
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.00001', '', '', energylifetime], shell=False)
+			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.01', '', '', energylifetime], shell=False)
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 			print("Powered by Enphase Energy: https://enphase.com")
