@@ -128,12 +128,22 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		end_energy = float(end_energy)
 
 		if end_energy >= (start_energy + energy_reporting_increment):
+	                wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
+                        if wallet_balance >= 1000:
+                                send_amount = 1
+                        elif wallet_balance < 1000 and wallet_balance >= 10:
+                                send_amount = 0.01
+                        else:
+                                send_amount = 0.00001
+                        send_amount = str(send_amount)
+                        print ('Based on wallet available balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+		
 			print("Initiating SolarCoin")
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 			print("SolarCoin TXID:")
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.01', '', '', energylifetime], shell=False)
+			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', energylifetime], shell=False)
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 			print("Powered by Enphase Energy: https://enphase.com")
@@ -250,12 +260,22 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		end_energy = float(end_energy)
 		
 		if end_energy >= (start_energy + energy_reporting_increment):
+                        wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
+                        if wallet_balance >= 1000:
+                                send_amount = 1
+                        elif wallet_balance < 1000 and wallet_balance >= 10:
+                                send_amount = 0.01
+                        else:
+                                send_amount = 0.00001
+                        send_amount = str(send_amount)
+                        print ('Based on wallet available balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+
 			print("Initiating SolarCoin")
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 			print("SolarCoin TXID:")
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.01', '', '', energylifetime], shell=False)
+			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', energylifetime], shell=False)
 			subprocess.call(['solarcoind', 'walletlock'], shell=False)
 			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 			print("Powered by Enphase Energy: https://enphase.com")
