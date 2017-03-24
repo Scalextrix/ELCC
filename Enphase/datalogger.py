@@ -16,7 +16,7 @@ import subprocess
 import sqlite3
 import sys
 import time
-from urllib2 import urlopen
+import urllib2
 
 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 energy_reporting_increment = 0.01
@@ -100,7 +100,13 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
 		print ("*** {} Calling Enphase LAN API  ***") .format(now_time)
 		url = ("http://"+envoy_ip+"/api/v1/production")
-		inverter = urlopen(url)
+                try:
+                        inverter = urllib2.urlopen(url, timeout = 20)
+                except urllib2.URLError, e:
+                        print ("There was an error, exit in 10 seconds: {}") .format(e)
+                        time.sleep(10)
+                        sys.exit()
+
 
 		print("Loading JSON data")
 		data = json.load(inverter)
@@ -230,7 +236,12 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		print ("*** {} Calling Enphase web API ***") .format(now_time)
 		url = ("https://api.enphaseenergy.com/api/v2/systems/"
 		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
-		inverter = urlopen(url)
+                try:
+                        inverter = urllib2.urlopen(url, timeout = 20)
+                except urllib2.URLError, e:
+                        print ("There was an error, exit in 10 seconds: {}") .format(e)
+                        time.sleep(10)
+                        sys.exit()
 
 		print("Loading JSON data")
 		data = json.load(inverter)
