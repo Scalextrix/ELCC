@@ -68,26 +68,16 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 
 	conn = sqlite3.connect("APIlan.db")
 	c = conn.cursor()
-	envoy_ip = c.execute('select envoyip from SYSTEMDETAILS').fetchall()
-	solarcoin_address = c.execute('select SLRaddress from SYSTEMDETAILS').fetchall()
-	solar_panel = c.execute('select panelid from SYSTEMDETAILS').fetchall()
-	solar_inverter = c.execute('select inverterid from SYSTEMDETAILS').fetchall()
-	peak_watt = c.execute('select pkwatt from SYSTEMDETAILS').fetchall()
-	latitude = c.execute('select lat from SYSTEMDETAILS').fetchall()
-	longitude = c.execute('select lon from SYSTEMDETAILS').fetchall()
-	message = c.execute('select msg from SYSTEMDETAILS').fetchall()
-	rpi = c.execute('select pi from SYSTEMDETAILS').fetchall()
+	envoy_ip = str(c.execute('select envoyip from SYSTEMDETAILS').fetchone()[0])
+	solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
+	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
+	solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
+	peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
+	latitude = str(c.execute('select lat from SYSTEMDETAILS').fetchone()[0])
+	longitude = str(c.execute('select lon from SYSTEMDETAILS').fetchone()[0])
+	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
+	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
-
-	envoy_ip = str(envoy_ip[0][0])
-	solarcoin_address = str(solarcoin_address[0][0])
-	solar_panel = str(solar_panel[0][0])
-	solar_inverter = str(solar_inverter[0][0])
-	peak_watt = str(peak_watt[0][0])
-	latitude = str(latitude[0][0])
-	longitude = str(longitude[0][0])
-	message = str(message[0][0])
-	rpi = str(rpi[0][0])
 	
 	# Sets the frequency that the solar inverter is queried, value in Seconds
 	system_watt = float(peak_watt)
@@ -120,18 +110,10 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
 		c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
 		conn.commit()		
-		conn.close()
-
-		conn = sqlite3.connect("APIlan.db")
-		c = conn.cursor()
 		row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
-		start_energy = c.execute('select totalenergy from ENERGYLOG').fetchone()
-		end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
+		start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
+		end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
 		conn.close()
-		start_energy = str(start_energy)[1:-2]
-		end_energy = str(end_energy)[1:-2]
-		start_energy = float(start_energy)
-		end_energy = float(end_energy)
 
 		if end_energy >= (start_energy + energy_reporting_increment):
 			print("Initiating SolarCoin")
@@ -201,29 +183,18 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 
 	conn = sqlite3.connect("APIweb.db")
 	c = conn.cursor()
-	system_id = c.execute('select systemid from SYSTEMDETAILS').fetchall()
-	user_id = c.execute('select userid from SYSTEMDETAILS').fetchall()
-	solarcoin_address = c.execute('select SLRaddress from SYSTEMDETAILS').fetchall()
-	solar_panel = c.execute('select panelid from SYSTEMDETAILS').fetchall()
-	solar_inverter = c.execute('select inverterid from SYSTEMDETAILS').fetchall()
-	peak_watt = c.execute('select pkwatt from SYSTEMDETAILS').fetchall()
-	latitude = c.execute('select lat from SYSTEMDETAILS').fetchall()
-	longitude = c.execute('select lon from SYSTEMDETAILS').fetchall()
-	message = c.execute('select msg from SYSTEMDETAILS').fetchall()
-	rpi = c.execute('select pi from SYSTEMDETAILS').fetchall()
+	system_id = str(c.execute('select systemid from SYSTEMDETAILS').fetchone()[0])
+	user_id = str(c.execute('select userid from SYSTEMDETAILS').fetchone()[0])
+	solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
+	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
+	solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
+	peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
+	latitude = str(c.execute('select lat from SYSTEMDETAILS').fetchone()[0])
+	longitude = str(c.execute('select lon from SYSTEMDETAILS').fetchone()[0])
+	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
+	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
 
-	system_id = str(system_id[0][0])
-	user_id = str(user_id[0][0])
-	solarcoin_address = str(solarcoin_address[0][0])
-	solar_panel = str(solar_panel[0][0])
-	solar_inverter = str(solar_inverter[0][0])
-	peak_watt = str(peak_watt[0][0])
-	latitude = str(latitude[0][0])
-	longitude = str(longitude[0][0])
-	message = str(message[0][0])
-	rpi = str(rpi[0][0])
-	
 	# Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within Enphase free Watt plan https://developer.enphase.com/plans 
 	system_watt = float(peak_watt)
 	if system_watt <= 288:
@@ -257,18 +228,10 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
 		c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
 		conn.commit()		
-		conn.close()
-
-		conn = sqlite3.connect("APIweb.db")
-		c = conn.cursor()
 		row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
-		start_energy = c.execute('select totalenergy from ENERGYLOG').fetchone()
-		end_energy = c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()
+		start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
+		end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
 		conn.close()
-		start_energy = str(start_energy)[1:-2]
-		end_energy = str(end_energy)[1:-2]
-		start_energy = float(start_energy)
-		end_energy = float(end_energy)
 		
 		if end_energy >= (start_energy + energy_reporting_increment):
 			print("Initiating SolarCoin")
