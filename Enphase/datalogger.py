@@ -18,6 +18,14 @@ import sys
 import time
 import urllib2
 
+def writetoblockchain():
+	print("SolarCoin TXID:")
+	subprocess.call(['solarcoind', 'walletlock'], shell=False)
+	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
+	subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', energylifetime], shell=False)
+	subprocess.call(['solarcoind', 'walletlock'], shell=False)
+	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+
 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 energy_reporting_increment = 0.01
 
@@ -128,12 +136,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
                         print ('Based on wallet available balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
 		
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
-			print("SolarCoin TXID:")
-			subprocess.call(['solarcoind', 'walletlock'], shell=False)
-			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', energylifetime], shell=False)
-			subprocess.call(['solarcoind', 'walletlock'], shell=False)
-			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+			writetoblockchain()
 			print("Powered by Enphase Energy: https://enphase.com")
 			
 			conn= sqlite3.connect("APIlan.db")
@@ -246,12 +249,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
                         print ('Based on wallet available balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
 
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
-			print("SolarCoin TXID:")
-			subprocess.call(['solarcoind', 'walletlock'], shell=False)
-			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-			subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', energylifetime], shell=False)
-			subprocess.call(['solarcoind', 'walletlock'], shell=False)
-			subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+			writetoblockchain()
 			print("Powered by Enphase Energy: https://enphase.com")
 			
 			conn= sqlite3.connect("APIweb.db")
