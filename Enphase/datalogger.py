@@ -18,6 +18,23 @@ import sys
 import time
 import urllib2
 
+def calculateamounttosend():
+        wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
+        if wallet_balance >= 1000:
+                send_amount = 1
+        elif wallet_balance < 1000 and wallet_balance >= 10:
+                send_amount = 0.01
+        else:
+                send_amount = 0.00001
+        send_amount = str(send_amount)
+        print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+        return send_amount
+
+def sleeptimer():
+	energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
+	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
+	time.sleep(inverter_query_increment)
+
 def writetoblockchain():
 	print("SolarCoin TXID:")
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
@@ -124,16 +141,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		conn.close()
 
 		if end_energy >= (start_energy + energy_reporting_increment):
-			print("Initiating SolarCoin")
-	                wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
-                        if wallet_balance >= 1000:
-                                send_amount = 1
-                        elif wallet_balance < 1000 and wallet_balance >= 10:
-                                send_amount = 0.01
-                        else:
-                                send_amount = 0.00001
-                        send_amount = str(send_amount)
-                        print ('Based on wallet available balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+                        send_amount = calculateamounttosend()
 		
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 			writetoblockchain()
@@ -152,9 +160,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
                         time.sleep(inverter_query_increment)
 			gc.collect()
 		else:
-			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
-			print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2F} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
-			time.sleep(inverter_query_increment)		
+			sleeptimer()	
 	
 elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
@@ -237,16 +243,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		conn.close()
 		
 		if end_energy >= (start_energy + energy_reporting_increment):
-			print("Initiating SolarCoin")
-                        wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
-                        if wallet_balance >= 1000:
-                                send_amount = 1
-                        elif wallet_balance < 1000 and wallet_balance >= 10:
-                                send_amount = 0.01
-                        else:
-                                send_amount = 0.00001
-                        send_amount = str(send_amount)
-                        print ('Based on wallet available balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+                        send_amount = calculateamounttosend()
 
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 			writetoblockchain()
@@ -265,9 +262,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
                         time.sleep(inverter_query_increment)
 			gc.collect()			
 		else:
-			energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
-			print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
-			time.sleep(inverter_query_increment)
+			sleeptimer()
 
 else:
 	del solarcoin_passphrase
