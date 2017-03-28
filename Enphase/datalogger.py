@@ -30,6 +30,28 @@ def calculateamounttosend():
         print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
         return send_amount
 
+def inverterqueryincrement():
+        # Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within E$
+        system_watt = float(peak_watt)
+        if system_watt <= 288:
+                inverter_query_increment = int(86400 / system_watt)
+        else:
+                inverter_query_increment = 300
+        return inverter_query_increment
+
+def refreshenergylogandsleep():
+        conn= sqlite3.connect(dbname)
+        c = conn.cursor()
+        c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
+        conn.commit()
+        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
+        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+        conn.commit()
+        conn.close()
+        print ("Waiting {} seconds") .format(inverter_query_increment)
+        time.sleep(inverter_query_increment)
+
+
 def sleeptimer():
 	energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
@@ -66,6 +88,7 @@ else:
 	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
 
 if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
+	dbname="APIlan.db"
 	if os.path.isfile("APIlan.db"):
 		print("Found Enphase API LAN database")
 	else:
@@ -104,13 +127,8 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
 	
-	# Sets the frequency that the solar inverter is queried, value in Seconds
-	system_watt = float(peak_watt)
-	if system_watt <= 1000:
-		inverter_query_increment = float(86400 / system_watt)
-	else:
-    		inverter_query_increment = 86
-
+        inverter_query_increment = inverterqueryincrement()
+	
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
 		print ("*** {} Calling Enphase LAN API  ***") .format(now_time)
@@ -147,18 +165,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			writetoblockchain()
 			print("Powered by Enphase Energy: https://enphase.com")
 			
-			conn= sqlite3.connect("APIlan.db")
-			c = conn.cursor()
-			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
-			conn.commit()		
-                        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
-                        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
-                        conn.commit()
-                        conn.close()
-
-                        print ("Waiting {:.0f} seconds before checking again (approx {:.2F} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
-                        time.sleep(inverter_query_increment)
-			gc.collect()
+			refreshenergylogandsleep()
 		else:
 			sleeptimer()	
 	
@@ -204,13 +211,8 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
 
-	# Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within Enphase free Watt plan https://developer.enphase.com/plans 
-	system_watt = float(peak_watt)
-	if system_watt <= 288:
-		inverter_query_increment = float(86400 / system_watt)
-	else:
-    		inverter_query_increment = 300
-		
+        inverter_query_increment = inverterqueryincrement()
+	
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
 		print ("*** {} Calling Enphase web API ***") .format(now_time)
@@ -249,18 +251,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 			writetoblockchain()
 			print("Powered by Enphase Energy: https://enphase.com")
 			
-			conn= sqlite3.connect("APIweb.db")
-			c = conn.cursor()
-			c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
-			conn.commit()		
-                        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
-                        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
-                        conn.commit()
-                        conn.close()
-
-                        print ("Waiting {:.0f} seconds before checking again (approx {:.2f} days") .format(inverter_query_increment, (inverter_query_increment/86400))
-                        time.sleep(inverter_query_increment)
-			gc.collect()			
+			refreshenergylogandsleep()		
 		else:
 			sleeptimer()
 
