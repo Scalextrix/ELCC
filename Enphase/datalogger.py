@@ -48,9 +48,8 @@ def refreshenergylogandsleep():
         c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
         conn.commit()
         conn.close()
-        print ("Waiting {} seconds") .format(inverter_query_increment)
+        print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
         time.sleep(inverter_query_increment)
-
 
 def sleeptimer():
 	energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
