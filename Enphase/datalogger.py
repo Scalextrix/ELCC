@@ -170,6 +170,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 			sleeptimer()	
 	
 elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
+	dbname="APIweb.db"
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
 	if os.path.isfile("APIweb.db"):
 		print("Found Enphase API web database")
