@@ -76,7 +76,7 @@ def retrievecommoncredentials():
         return {'solarcoin_address':solarcoin_address, 'solar_panel':solar_panel, 'solar_inverter':solar_inverter, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'rpi':rpi}
 
 def sleeptimer():
-	energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
+	energy_left = (energy_reporting_increment - (energy_log['end_energy'] - energy_log['start_energy'])) * 1000
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 	time.sleep(inverter_query_increment)
 	
