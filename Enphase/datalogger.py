@@ -6,7 +6,7 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "2.2"
+__version__ = "2.3"
 
 import gc
 import getpass
@@ -105,15 +105,18 @@ def timestamp():
 	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
 	print ("*** {} Calling Inverter API  ***") .format(now_time)
 
-def urltest():
+def urltestandjsonload():
+	print "Attempting Inverter API call and JSON data load"
 	try:
-		inverter = urllib2.urlopen(url, timeout = 20)
-		return inverter
+		json_data = json.load(urllib2.urlopen(url, timeout=20))
 	except urllib2.URLError, e:
 		print ("There was an error, exit in 10 seconds: {}") .format(e)
 		time.sleep(10)
 		sys.exit()
-
+	else:
+		print "Inverter API call successful"
+                return json_data
+	
 def writetoblockchain():
 	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; '+enphase_attribution)'
 	print("Initiating SolarCoin")
@@ -168,15 +171,13 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	comm_creds = retrievecommoncredentials()
 	
         inverter_query_increment = float(inverterqueryincrement())
+	url = ("http://"+envoy_ip+"/api/v1/production")
 	
 	while True:
 		timestamp()
-		url = ("http://"+envoy_ip+"/api/v1/production")
-                inverter = urltest()
+                json_data = urltestandjsonload()
 
-		print("Loading JSON data")
-		data = json.load(inverter)
-		total_energy = float(data['wattHoursLifetime'])/1000000
+		total_energy = float(json_data['wattHoursLifetime'])/1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
 		energy_log = maintainenergylog()
@@ -185,7 +186,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
                         send_amount = calculateamounttosend()
 			
 			writetoblockchain()
-			print enphase_attribution
+			print manufacturer_attribution
 			
 			refreshenergylogandsleep()
 		else:
@@ -226,17 +227,13 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	comm_creds = retrievecommoncredentials()
 
         inverter_query_increment = float(inverterqueryincrement())
-	
+	url = ("https://api.enphaseenergy.com/api/v2/systems/"+system_id+"/summary?&key="+api_key+"&user_id="+user_id)
 	while True:
 		timestamp()
-		url = ("https://api.enphaseenergy.com/api/v2/systems/"
-		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
-                inverter = urltest()
+                json_data = urltestandjsonload()
 		
-		print("Loading JSON data")
-		data = json.load(inverter)
-		energy_lifetime = float(data['energy_lifetime'])
-		energy_today = float(data['energy_today'])
+		energy_lifetime = float(json_data['energy_lifetime'])
+		energy_today = float(json_data['energy_today'])
 		total_energy = (energy_lifetime + energy_today) / 1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
