@@ -21,18 +21,18 @@ import urllib2
 def calculateamounttosend():
         wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
         if wallet_balance >= 1000:
-                send_amount = 1
+                send_amount = str(1)
         elif wallet_balance < 1000 and wallet_balance >= 10:
-                send_amount = 0.01
+                send_amount = str(0.01)
         else:
-                send_amount = 0.00001
-        send_amount = str(send_amount)
+                send_amount = str(0.00001)
         print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
         return send_amount
 
 def inverterqueryincrement():
-        # Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within E$
-        system_watt = float(peak_watt)
+        """ Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within
+	Enphase free Watt plan https://developer.enphase.com/plans """
+        system_watt = float(comm_creds['peak_watt'])
         if system_watt <= 288:
                 inverter_query_increment = int(86400 / system_watt)
         else:
@@ -51,7 +51,6 @@ def maintainenergylog():
         conn.close()
         return{'start_energy':start_energy, 'end_energy':end_energy}
 
-
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
         c = conn.cursor()
@@ -64,21 +63,46 @@ def refreshenergylogandsleep():
         print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
         time.sleep(inverter_query_increment)
 
+def retrievecommoncredentials():
+        solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
+        solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
+        solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
+        peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
+        latitude = str(c.execute('select lat from SYSTEMDETAILS').fetchone()[0])
+        longitude = str(c.execute('select lon from SYSTEMDETAILS').fetchone()[0])
+        message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
+        rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
+        conn.close()
+        return {'solarcoin_address':solarcoin_address, 'solar_panel':solar_panel, 'solar_inverter':solar_inverter, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'rpi':rpi}
+
 def sleeptimer():
 	energy_left = (energy_reporting_increment - (end_energy - start_energy)) * 1000
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 	time.sleep(inverter_query_increment)
+	
+def urltest():
+	try:
+		inverter = urllib2.urlopen(url, timeout = 20)
+		return inverter
+	except urllib2.URLError, e:
+		print ("There was an error, exit in 10 seconds: {}") .format(e)
+		time.sleep(10)
+		sys.exit()
 
 def writetoblockchain():
+	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; '+enphase_attribution)'
+	print("Initiating SolarCoin")
 	print("SolarCoin TXID:")
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-	subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', energylifetime], shell=False)
+	subprocess.call(['solarcoind', 'sendtoaddress', comm_creds['solarcoin_address'], send_amount, '', '', tx_message], shell=False)
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 energy_reporting_increment = 0.01
+
+enphase_attribution = "Powered by Enphase Energy: https://enphase.com"
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 print "Testing SolarCoin Wallet Passphrase, locking wallet..."
@@ -129,15 +153,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	envoy_ip = str(c.execute('select envoyip from SYSTEMDETAILS').fetchone()[0])
-	solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
-	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
-	solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
-	peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
-	latitude = str(c.execute('select lat from SYSTEMDETAILS').fetchone()[0])
-	longitude = str(c.execute('select lon from SYSTEMDETAILS').fetchone()[0])
-	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
-	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
-	conn.close()
+	comm_creds = retrievecommoncredentials()
 	
         inverter_query_increment = inverterqueryincrement()
 	
@@ -145,29 +161,20 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
 		print ("*** {} Calling Enphase LAN API  ***") .format(now_time)
 		url = ("http://"+envoy_ip+"/api/v1/production")
-                try:
-                        inverter = urllib2.urlopen(url, timeout = 20)
-                except urllib2.URLError, e:
-                        print ("There was an error, exit in 10 seconds: {}") .format(e)
-                        time.sleep(10)
-                        sys.exit()
-
+                inverter = urltest()
 
 		print("Loading JSON data")
 		data = json.load(inverter)
-		total_energy = data['wattHoursLifetime']
-		total_energy = float(total_energy)
-		total_energy = total_energy / 1000000
+		total_energy = float(data['wattHoursLifetime'])/1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
 		energy_log = maintainenergylog()
 
 		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
                         send_amount = calculateamounttosend()
-		
-			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
+			
 			writetoblockchain()
-			print("Powered by Enphase Energy: https://enphase.com")
+			print enphase_attribution
 			
 			refreshenergylogandsleep()
 		else:
@@ -206,15 +213,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	c = conn.cursor()
 	system_id = str(c.execute('select systemid from SYSTEMDETAILS').fetchone()[0])
 	user_id = str(c.execute('select userid from SYSTEMDETAILS').fetchone()[0])
-	solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
-	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
-	solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
-	peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
-	latitude = str(c.execute('select lat from SYSTEMDETAILS').fetchone()[0])
-	longitude = str(c.execute('select lon from SYSTEMDETAILS').fetchone()[0])
-	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
-	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
-	conn.close()
+	comm_creds = retrievecommoncredentials()
 
         inverter_query_increment = inverterqueryincrement()
 	
@@ -223,19 +222,12 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		print ("*** {} Calling Enphase web API ***") .format(now_time)
 		url = ("https://api.enphaseenergy.com/api/v2/systems/"
 		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
-                try:
-                        inverter = urllib2.urlopen(url, timeout = 20)
-                except urllib2.URLError, e:
-                        print ("There was an error, exit in 10 seconds: {}") .format(e)
-                        time.sleep(10)
-                        sys.exit()
-
+                inverter = urltest()
+		
 		print("Loading JSON data")
 		data = json.load(inverter)
-		energy_lifetime = data['energy_lifetime']
-		energy_today = data['energy_today']
-		energy_lifetime = float(energy_lifetime)
-		energy_today = float(energy_today)
+		energy_lifetime = float(data['energy_lifetime'])
+		energy_today = float(data['energy_today'])
 		total_energy = (energy_lifetime + energy_today) / 1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
@@ -244,9 +236,8 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
                         send_amount = calculateamounttosend()
 
-			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
 			writetoblockchain()
-			print("Powered by Enphase Energy: https://enphase.com")
+			print enphase_attribution
 			
 			refreshenergylogandsleep()		
 		else:
