@@ -29,6 +29,15 @@ def calculateamounttosend():
         print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
         return send_amount
 
+def checkfordatabases():
+	if os.path.isfile("APIlan.db"):
+		lan_wan = "y"	
+	elif os.path.isfile("APIweb.db"):
+		lan_wan = "n"
+	else:
+		lan_wan = raw_input("Is the Inverter on your LAN: ").lower()
+	return lan_wan
+
 def inverterqueryincrement():
         """ Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within
 	Enphase free Watt plan https://developer.enphase.com/plans """
@@ -50,6 +59,18 @@ def maintainenergylog():
         end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
         conn.close()
         return{'start_energy':start_energy, 'end_energy':end_energy}
+
+def passphrasetest():
+	print "Testing SolarCoin Wallet Passphrase, locking wallet..."
+	try:
+		subprocess.call(['solarcoind', 'walletlock'], shell=False)
+		subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+	except subprocess.CalledProcessError:
+		print "Incorrect Passphrase: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
+        	time.sleep(10)
+		sys.exit()
+	else:
+        	print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
 
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
@@ -107,25 +128,12 @@ def writetoblockchain():
 energy_reporting_increment = 0.01
 
 enphase_attribution = "Powered by Enphase Energy: https://enphase.com"
+api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
 
 solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
-print "Testing SolarCoin Wallet Passphrase, locking wallet..."
-try:
-	subprocess.call(['solarcoind', 'walletlock'], shell=False)
-	subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-except subprocess.CalledProcessError:
-	print "Incorrect Passphrase: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
-        time.sleep(10)
-	sys.exit()
-else:
-        print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
+passphrasetest()
 	
-if os.path.isfile("APIlan.db"):
-	lan_wan = "y"	
-elif os.path.isfile("APIweb.db"):
-	lan_wan = "n"
-else:
-	lan_wan = raw_input("Is the Enphase Envoy on your LAN: ").lower()
+lan_wan = checkfordatabases()
 
 if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	dbname="APIlan.db"
@@ -185,7 +193,6 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	
 elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	dbname="APIweb.db"
-	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
 	if os.path.isfile(dbname):
 		print("Found Enphase API web database")
 	else:
