@@ -155,7 +155,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	envoy_ip = str(c.execute('select envoyip from SYSTEMDETAILS').fetchone()[0])
 	comm_creds = retrievecommoncredentials()
 	
-        inverter_query_increment = inverterqueryincrement()
+        inverter_query_increment = float(inverterqueryincrement())
 	
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
@@ -215,7 +215,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	user_id = str(c.execute('select userid from SYSTEMDETAILS').fetchone()[0])
 	comm_creds = retrievecommoncredentials()
 
-        inverter_query_increment = inverterqueryincrement()
+        inverter_query_increment = float(inverterqueryincrement())
 	
 	while True:
 		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
