@@ -79,7 +79,11 @@ def sleeptimer():
 	energy_left = (energy_reporting_increment - (energy_log['end_energy'] - energy_log['start_energy'])) * 1000
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 	time.sleep(inverter_query_increment)
-	
+
+def timestamp():
+	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+	print ("*** {} Calling Inverter API  ***") .format(now_time)
+
 def urltest():
 	try:
 		inverter = urllib2.urlopen(url, timeout = 20)
@@ -158,8 +162,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
         inverter_query_increment = float(inverterqueryincrement())
 	
 	while True:
-		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-		print ("*** {} Calling Enphase LAN API  ***") .format(now_time)
+		timestamp()
 		url = ("http://"+envoy_ip+"/api/v1/production")
                 inverter = urltest()
 
@@ -218,8 +221,7 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
         inverter_query_increment = float(inverterqueryincrement())
 	
 	while True:
-		now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-		print ("*** {} Calling Enphase web API ***") .format(now_time)
+		timestamp()
 		url = ("https://api.enphaseenergy.com/api/v2/systems/"
 		       +system_id+"/summary?&key="+api_key+"&user_id="+user_id)
                 inverter = urltest()
