@@ -61,6 +61,7 @@ def maintainenergylog():
         return{'start_energy':start_energy, 'end_energy':end_energy}
 
 def passphrasetest():
+	getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 	print "Testing SolarCoin Wallet Passphrase, locking wallet..."
 	try:
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
@@ -71,6 +72,7 @@ def passphrasetest():
 		sys.exit()
 	else:
         	print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
+		return solarcoin_passphrase
 
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
@@ -82,7 +84,8 @@ def refreshenergylogandsleep():
         conn.commit()
         conn.close()
         print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
-        time.sleep(inverter_query_increment)
+        print "*************************************************"
+	time.sleep(inverter_query_increment)
 
 def retrievecommoncredentials():
         solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
@@ -99,6 +102,7 @@ def retrievecommoncredentials():
 def sleeptimer():
 	energy_left = (energy_reporting_increment - (energy_log['end_energy'] - energy_log['start_energy'])) * 1000
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
+	print "*************************************************"
 	time.sleep(inverter_query_increment)
 
 def timestamp():
@@ -130,12 +134,10 @@ def writetoblockchain():
 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 energy_reporting_increment = 0.01
 
-enphase_attribution = "Powered by Enphase Energy: https://enphase.com"
+manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
 
-solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
-passphrasetest()
-	
+solarcoin_passphrase = passphrasetest()	
 lan_wan = checkfordatabases()
 
 if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
@@ -176,18 +178,13 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	while True:
 		timestamp()
                 json_data = urltestandjsonload()
-
 		total_energy = float(json_data['wattHoursLifetime'])/1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
-
 		energy_log = maintainenergylog()
-
 		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
                         send_amount = calculateamounttosend()
-			
 			writetoblockchain()
 			print manufacturer_attribution
-			
 			refreshenergylogandsleep()
 		else:
 			sleeptimer()	
@@ -231,20 +228,15 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	while True:
 		timestamp()
                 json_data = urltestandjsonload()
-		
 		energy_lifetime = float(json_data['energy_lifetime'])
 		energy_today = float(json_data['energy_today'])
 		total_energy = (energy_lifetime + energy_today) / 1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
-
 		energy_log = maintainenergylog()
-		
 		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
                         send_amount = calculateamounttosend()
-
 			writetoblockchain()
-			print enphase_attribution
-			
+			print manufacturer_attribution
 			refreshenergylogandsleep()		
 		else:
 			sleeptimer()
