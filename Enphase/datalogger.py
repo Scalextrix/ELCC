@@ -39,6 +39,19 @@ def inverterqueryincrement():
                 inverter_query_increment = 300
         return inverter_query_increment
 
+def maintainenergylog():
+        conn = sqlite3.connect(dbname)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
+        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+        conn.commit()
+        row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
+        start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
+        end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
+        conn.close()
+        return{'start_energy':start_energy, 'end_energy':end_energy}
+
+
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
         c = conn.cursor()
@@ -88,7 +101,7 @@ else:
 
 if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 	dbname="APIlan.db"
-	if os.path.isfile("APIlan.db"):
+	if os.path.isfile(dbname):
 		print("Found Enphase API LAN database")
 	else:
 		envoy_ip = raw_input ("What is your Enphase Envoy IP address: ")
@@ -106,14 +119,14 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		longitude = raw_input ("What is the Longitude of your installation: ")
 		message = raw_input ("Add an optional message describing your system: ")
 		rpi = raw_input ("If you are staking on a Raspberry Pi note the Model: ")
-		conn = sqlite3.connect("APIlan.db")
+		conn = sqlite3.connect(dbname)
 		c = conn.cursor()
 		c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (envoyip TEXT, SLRaddress TEXT, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
 		c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?);", (envoy_ip, solarcoin_address, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
 		conn.commit()		
 		conn.close()
 
-	conn = sqlite3.connect("APIlan.db")
+	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	envoy_ip = str(c.execute('select envoyip from SYSTEMDETAILS').fetchone()[0])
 	solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
@@ -147,17 +160,9 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 		total_energy = total_energy / 1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
-		conn = sqlite3.connect("APIlan.db")
-		c = conn.cursor()
-		c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
-		c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
-		conn.commit()		
-		row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
-		start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
-		end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
-		conn.close()
+		energy_log = maintainenergylog()
 
-		if end_energy >= (start_energy + energy_reporting_increment):
+		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
                         send_amount = calculateamounttosend()
 		
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
@@ -171,7 +176,7 @@ if lan_wan == "y" or lan_wan == "yes" or lan_wan == "lan":
 elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 	dbname="APIweb.db"
 	api_key = ("6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c")
-	if os.path.isfile("APIweb.db"):
+	if os.path.isfile(dbname):
 		print("Found Enphase API web database")
 	else:
 		system_id = raw_input ("What is your Enphase System ID: ")
@@ -190,14 +195,14 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		longitude = raw_input ("What is the Longitude of your installation: ")
 		message = raw_input ("Add an optional message describing your system: ")
 		rpi = raw_input ("If you are staking on a Raspberry Pi note the Model: ")
-		conn = sqlite3.connect("APIweb.db")
+		conn = sqlite3.connect(dbname)
 		c = conn.cursor()
 		c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (systemid TEXT, userid TEXT, SLRaddress TEXT, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
 		c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?);", (system_id, user_id, solarcoin_address, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
 		conn.commit()		
 		conn.close()
 
-	conn = sqlite3.connect("APIweb.db")
+	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	system_id = str(c.execute('select systemid from SYSTEMDETAILS').fetchone()[0])
 	user_id = str(c.execute('select userid from SYSTEMDETAILS').fetchone()[0])
@@ -234,17 +239,9 @@ elif lan_wan == "n" or lan_wan == "no" or lan_wan == "web":
 		total_energy = (energy_lifetime + energy_today) / 1000000
 		print("Total Energy MWh: {:.6f}") .format(total_energy)
 
-		conn = sqlite3.connect("APIweb.db")
-		c = conn.cursor()
-		c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
-		c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
-		conn.commit()		
-		row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
-		start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
-		end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
-		conn.close()
+		energy_log = maintainenergylog()
 		
-		if end_energy >= (start_energy + energy_reporting_increment):
+		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
                         send_amount = calculateamounttosend()
 
 			energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)+'; Powered by Enphase Energy: http://enphase.com')
