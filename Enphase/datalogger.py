@@ -92,7 +92,7 @@ def refreshenergylogandsleep():
         conn.commit()
         conn.close()
         print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
-        print "*************************************************"
+        print ("******** "+manufacturer_attribution+" ********")
 	time.sleep(inverter_query_increment)
 
 def retrievecommoncredentials():
