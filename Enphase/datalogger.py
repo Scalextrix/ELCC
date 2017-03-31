@@ -186,8 +186,7 @@ def writetoblockchain():
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
-# Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
-energy_reporting_increment = 0.01
+energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
