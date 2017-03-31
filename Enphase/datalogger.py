@@ -173,7 +173,7 @@ else:
         longitude = raw_input ("What is the Longitude of your installation: ")
         message = raw_input ("Add an optional message describing your system: ")
         rpi = raw_input ("If you are staking on a Raspberry Pi note the Model: ")
-        lan_web = raw_input ("Is the Inverter on your LAN: ")
+        lan_web = raw_input ("Is the Inverter on your LAN: ").lower()
         if lan_web == "y" or lan_web == "yes" or lan_web == "lan":
                 dbname="APIlan.db"
                 system_id = ""
