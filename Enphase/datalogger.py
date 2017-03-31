@@ -56,6 +56,30 @@ def inverterqueryincrement():
 	# inverter_query_increment = 86 # Uncomment for testing
         return inverter_query_increment
 
+def latitudetest():
+        while True:
+                latitude = raw_input ("What is the Latitude of your installation: ").upper()
+                if latitude[-1] == 'N' or latitude[-1] == 'S':
+                        try:
+                                latitude = float(latitude[:-2])
+                                return latitude
+                        except ValueError:
+                                print "Error: You must enter Latitude in a form 3.456N or 4.567S"
+                else:
+                        print "Error: You must enter Latitude in a form 3.456N or 4.567S"
+
+def longitudetest():
+        while True:
+                longitude = raw_input ("What is the Longitude of your installation: ").upper()
+                if longitude[-1] == 'E' or longitude[-1] == 'W':
+                        try:
+                                longitude = float(longitude[:-2])
+                                return longitude
+                        except ValueError:
+                                print "Error: You must enter Longitude in a form 3.456E or 4.567W"
+                else:
+                        print "Error: You must enter Longitude in a form 3.456E or 4.567W"
+
 def maintainenergylog():
         conn = sqlite3.connect(dbname)
         c = conn.cursor()
@@ -81,6 +105,15 @@ def passphrasetest():
 	else:
         	print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
 		return solarcoin_passphrase
+
+def peakwatttest():
+        while True:
+                peak_watt = raw_input ("In kW (kilo-Watts), what is the peak output of your system: ")
+                try:
+                        peak_watt = float(peak_watt)
+                        return peak_watt
+                except ValueError:
+                        print "Error: You must enter numbers and decimal point only e.g. 3.975"
 
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
@@ -117,6 +150,15 @@ def sleeptimer():
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 	print ("******** "+manufacturer_attribution+" ********")
 	time.sleep(inverter_query_increment)
+
+def slraddresstest():
+        while True:
+                solarcoin_address = raw_input ("What is your SolarCoin Address: ")
+                output = subprocess.check_output(['solarcoind', 'validateaddress', solarcoin_address], shell=False)[18:-3]
+                if output != 'false':
+                        return solarcoin_address
+                else:
+                        print ("Error: SolarCoin address invlaid, check and try again")
 
 def timestamp():
 	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
@@ -159,18 +201,12 @@ elif os.path.isfile("APIweb.db"):
         dbname = "APIweb.db"
 else:
         print "No database found, please complete the following credentials: "
-        solarcoin_address = raw_input ("What is your SolarCoin Address: ")
+        solarcoin_address = slraddresstest()
         solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
         solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
-        while True:
-                peak_watt = raw_input ("In kW (kilo-Watts), what is the peak output of your system: ")
-                try:
-                        peak_watt = float(peak_watt)
-                        break
-                except ValueError:
-                        print "Error: You must enter numbers and decimal point only e.g. 3.975"
-        latitude = raw_input ("What is the Latitude of your installation: ")
-        longitude = raw_input ("What is the Longitude of your installation: ")
+	peak_watt = peakwatttest()
+        latitude = latitudetest()
+        longitude = longitudetest()
         message = raw_input ("Add an optional message describing your system: ")
         rpi = raw_input ("If you are staking on a Raspberry Pi note the Model: ")
         lan_web = raw_input ("Is the Inverter on your LAN: ").lower()
