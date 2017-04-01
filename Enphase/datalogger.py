@@ -27,7 +27,7 @@ def calculateamounttosend():
         elif wallet_balance >= 10:
                 send_amount = str(1)
 		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
-        elif wallet_balance < 10 and wallet_balance >= 0.1:
+        elif wallet_balance < 10 and wallet_balance >= 0.03:
                 send_amount = str(0.01)
 		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
         else:
