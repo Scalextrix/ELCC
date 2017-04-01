@@ -20,13 +20,19 @@ import urllib2
 
 def calculateamounttosend():
         wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
-        if wallet_balance >= 1000:
+	if wallet_balance < 0.001:
+		print "Error: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet"
+		time.sleep(10)
+		sys.exit
+        elif wallet_balance >= 10:
                 send_amount = str(1)
-        elif wallet_balance < 1000 and wallet_balance >= 10:
+		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+        elif wallet_balance < 10 and wallet_balance >= 0.1:
                 send_amount = str(0.01)
+		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
         else:
                 send_amount = str(0.00001)
-        print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+		print ("Warning: low wallet balance of {}SLR, send amount of {} may result in higher TX fees") .format(wallet_balance, send_amount)
         return send_amount
 
 def databasecreate():
@@ -40,10 +46,9 @@ def databasecreate():
 def databasenamebroken():
         del solarcoin_passphrase
         gc.collect()
-        print "Exiting in 10 seconds: Database name corrupted, delete *.db and try again"
+        print "Exiting in 10 seconds: Database name corrupted, delete *.db file and try again"
         time.sleep(10)
         sys.exit()
-
 
 def inverterqueryincrement():
         """ Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within
@@ -173,13 +178,11 @@ def urltestandjsonload():
 		time.sleep(10)
 		sys.exit()
 	else:
-		print "Inverter API call successful"
                 return json_data
 	
 def writetoblockchain():
 	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; '+enphase_attribution)'
-	print("Initiating SolarCoin")
-	print("SolarCoin TXID:")
+	print("Initiating SolarCoin.....  TXID:")
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
 	subprocess.call(['solarcoind', 'sendtoaddress', comm_creds['solarcoin_address'], send_amount, '', '', tx_message], shell=False)
@@ -244,7 +247,7 @@ while True:
         else:
                 databasenamebroken()
 
-        print("Total Energy MWh: {:.6f}") .format(total_energy)
+        print("Inverter API call successful: Total Energy MWh: {:.6f}") .format(total_energy)
         energy_log = maintainenergylog()
 
         if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
