@@ -104,7 +104,7 @@ def passphrasetest():
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
 		subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 	except subprocess.CalledProcessError:
-		print "Incorrect Passphrase: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
+		print "Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
         	time.sleep(10)
 		sys.exit()
 	else:
