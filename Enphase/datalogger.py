@@ -58,7 +58,7 @@ def inverterqueryincrement():
                 inverter_query_increment = int(86400 / system_watt)
         else:
                 inverter_query_increment = 300
-	# inverter_query_increment = 86 # Uncomment for testing
+	# inverter_query_increment = 300 # Uncomment for testing
         return inverter_query_increment
 
 def latitudetest():
@@ -66,7 +66,7 @@ def latitudetest():
                 latitude = raw_input ("What is the Latitude of your installation: ").upper()
                 if latitude[-1] == 'N' or latitude[-1] == 'S':
                         try:
-                                latitude_float = float(latitude[:-2])
+                                float(latitude[:-2])
                                 return latitude
                         except ValueError:
                                 print "Error: You must enter Latitude in a form 3.456N or 4.567S"
@@ -78,7 +78,7 @@ def longitudetest():
                 longitude = raw_input ("What is the Longitude of your installation: ").upper()
                 if longitude[-1] == 'E' or longitude[-1] == 'W':
                         try:
-                                longitude_float = float(longitude[:-2])
+                                float(longitude[:-2])
                                 return longitude
                         except ValueError:
                                 print "Error: You must enter Longitude in a form 3.456E or 4.567W"
