@@ -20,7 +20,7 @@ import urllib2
 
 def calculateamounttosend():
         wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
-	if wallet_balance < 0.001:
+	if wallet_balance < 0.0005:
 		print ("Error: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet") .format(wallet_balance)
 		time.sleep(10)
 		sys.exit
