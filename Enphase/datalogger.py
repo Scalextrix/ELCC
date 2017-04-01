@@ -21,7 +21,7 @@ import urllib2
 def calculateamounttosend():
         wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
 	if wallet_balance < 0.001:
-		print "Error: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet"
+		print ("Error: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet") .format(wallet_balance)
 		time.sleep(10)
 		sys.exit
         elif wallet_balance >= 10:
@@ -194,7 +194,7 @@ manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
 solarcoin_passphrase = passphrasetest()	
-
+calculateamounttosend()
 if os.path.isfile("APIlan.db"):
         print "Found API LAN database"
         dbname = "APIlan.db"
