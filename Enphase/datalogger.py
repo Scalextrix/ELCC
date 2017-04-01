@@ -181,7 +181,7 @@ def urltestandjsonload():
                 return json_data
 	
 def writetoblockchain():
-	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; '+enphase_attribution)
+	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; '+manufacturer_attribution)
 	print("Initiating SolarCoin.....  TXID:")
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
