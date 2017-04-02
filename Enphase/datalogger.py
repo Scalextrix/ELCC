@@ -21,7 +21,7 @@ import urllib2
 def calculateamounttosend():
         wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
 	if wallet_balance < 0.0005:
-		print ("Error: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet") .format(wallet_balance)
+		print ("*******ERROR: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet *******") .format(wallet_balance)
 		time.sleep(10)
 		sys.exit
         elif wallet_balance >= 10:
@@ -32,7 +32,7 @@ def calculateamounttosend():
 		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
         else:
                 send_amount = str(0.00001)
-		print ("Warning: low wallet balance of {}SLR, send amount of {} may result in higher TX fees") .format(wallet_balance, send_amount)
+		print ("*******WARNING: low wallet balance of {}SLR, send amount of {} may result in higher TX fees*******") .format(wallet_balance, send_amount)
         return send_amount
 
 def databasecreate():
@@ -46,7 +46,7 @@ def databasecreate():
 def databasenamebroken():
         del solarcoin_passphrase
         gc.collect()
-        print "Exiting in 10 seconds: Database name corrupted, delete *.db file and try again"
+        print "*******ERROR: Exiting in 10 seconds: Database name corrupted, delete *.db file and try again *******"
         time.sleep(10)
         sys.exit()
 
@@ -69,9 +69,9 @@ def latitudetest():
                                 float(latitude[:-2])
                                 return latitude
                         except ValueError:
-                                print "Error: You must enter Latitude in a form 3.456N or 4.567S"
+                                print "*******ERROR: You must enter Latitude in a form 3.456N or 4.567S *******"
                 else:
-                        print "Error: You must enter Latitude in a form 3.456N or 4.567S"
+                        print "*******ERROR: You must enter Latitude in a form 3.456N or 4.567S *******"
 
 def longitudetest():
         while True:
@@ -81,9 +81,9 @@ def longitudetest():
                                 float(longitude[:-2])
                                 return longitude
                         except ValueError:
-                                print "Error: You must enter Longitude in a form 3.456E or 4.567W"
+                                print "*******ERROR: You must enter Longitude in a form 3.456E or 4.567W *******"
                 else:
-                        print "Error: You must enter Longitude in a form 3.456E or 4.567W"
+                        print "*******ERROR: You must enter Longitude in a form 3.456E or 4.567W *******"
 
 def maintainenergylog():
         conn = sqlite3.connect(dbname)
@@ -104,7 +104,7 @@ def passphrasetest():
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
 		subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 	except subprocess.CalledProcessError:
-		print "Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING"
+		print "*******ERROR: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING *******"
         	time.sleep(10)
 		sys.exit()
 	else:
@@ -118,7 +118,7 @@ def peakwatttest():
                         peak_watt = float(peak_watt)
                         return peak_watt
                 except ValueError:
-                        print "Error: You must enter numbers and decimal point only e.g. 3.975"
+                        print "*******ERROR: You must enter numbers and decimal point only e.g. 3.975 *******"
 
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
@@ -158,23 +158,23 @@ def sleeptimer():
 
 def slraddresstest():
         while True:
-                solarcoin_address = raw_input ("What is your SolarCoin Address: ")
+                solarcoin_address = raw_input ("What is your own SolarCoin Address: ")
                 output = subprocess.check_output(['solarcoind', 'validateaddress', solarcoin_address], shell=False)[18:-3]
                 if output != 'false':
                         return solarcoin_address
                 else:
-                        print ("Error: SolarCoin address invlaid, check and try again")
+                        print ("********ERROR: SolarCoin address invlaid, check and try again *******")
 
 def timestamp():
 	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
-	print ("*** {} Calling Inverter API  ***") .format(now_time)
+	print ("*** {} Starting Datalogger Cycle  ***") .format(now_time)
 
 def urltestandjsonload():
 	print "Attempting Inverter API call and JSON data load"
 	try:
 		json_data = json.load(urllib2.urlopen(url, timeout=20))
 	except urllib2.URLError, e:
-		print ("There was an error, exit in 10 seconds: {}") .format(e)
+		print ("********ERROR: Exit in 10 seconds: {} *******") .format(e)
 		time.sleep(10)
 		sys.exit()
 	else:
