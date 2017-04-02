@@ -66,8 +66,11 @@ def latitudetest():
                 latitude = raw_input ("What is the Latitude of your installation: ").upper()
                 if latitude[-1] == 'N' or latitude[-1] == 'S':
                         try:
-                                float(latitude[:-2])
-                                return latitude
+                                lat_float = float(latitude[:-1])
+				if lat_float <= 90:
+                                	return latitude
+				else:
+					print "*******ERROR: Latitude cannot be larger than 90.000N or 90.000S *******"
                         except ValueError:
                                 print "*******ERROR: You must enter Latitude in a form 3.456N or 4.567S *******"
                 else:
@@ -78,8 +81,11 @@ def longitudetest():
                 longitude = raw_input ("What is the Longitude of your installation: ").upper()
                 if longitude[-1] == 'E' or longitude[-1] == 'W':
                         try:
-                                float(longitude[:-2])
-                                return longitude
+                                lon_float = float(longitude[:-1])
+				if lon_float <= 180:
+					return longitude
+				else:
+					print "*******ERROR: Longitude cannot be larger than 180.000E or 180.000W *******"
                         except ValueError:
                                 print "*******ERROR: You must enter Longitude in a form 3.456E or 4.567W *******"
                 else:
