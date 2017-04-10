@@ -94,14 +94,17 @@ def longitudetest():
 def maintainenergylog():
         conn = sqlite3.connect(dbname)
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
-        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL, time REAL)''')
+	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
         conn.commit()
         row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
         start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
+	start_time = str(c.execute('select time from ENERGYLOG').fetchone()[0])
         end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
+	end_time = str(c.execute('select time from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
         conn.close()
-        return{'start_energy':start_energy, 'end_energy':end_energy}
+        return{'start_energy':start_energy, 'start_time':start_time, 'end_energy':end_energy, 'end_time':end_time}
 
 def passphrasetest():
 	solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
@@ -129,10 +132,12 @@ def peakwatttest():
 def refreshenergylogandsleep():
         conn= sqlite3.connect(dbname)
         c = conn.cursor()
+        row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
+        now_time = str(c.execute('select time from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
         c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
         conn.commit()
-        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL)''')
-        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?);", (total_energy,))
+        c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL, time REAL)''')
+        c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
         conn.commit()
         conn.close()
         print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
@@ -187,7 +192,7 @@ def urltestandjsonload():
                 return json_data
 	
 def writetoblockchain():
-	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; '+manufacturer_attribution)
+	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; From {} To {}' .format(energy_log['start_time'], energy_log['end_time'])+'; '+manufacturer_attribution)
 	print("Initiating SolarCoin.....  TXID:")
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
