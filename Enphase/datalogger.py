@@ -206,6 +206,7 @@ api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
 solarcoin_passphrase = passphrasetest()	
 calculateamounttosend()
+
 if os.path.isfile("APIlan.db"):
         print "Found API LAN database"
         dbname = "APIlan.db"
