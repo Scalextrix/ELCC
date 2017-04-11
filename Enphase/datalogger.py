@@ -244,7 +244,6 @@ else:
 
 comm_creds = retrievecommoncredentials()
 inverter_query_increment = float(inverterqueryincrement())
-
 while True:
         timestamp()
         if os.path.isfile("APIlan.db"):
