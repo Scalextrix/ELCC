@@ -23,7 +23,7 @@ def calculateamounttosend():
 	if wallet_balance < 0.0005:
 		print ("*******ERROR: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet *******") .format(wallet_balance)
 		time.sleep(10)
-		sys.exit
+		sys.exit()
         elif wallet_balance >= 10:
                 send_amount = str(1)
 		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
