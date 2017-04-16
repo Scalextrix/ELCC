@@ -54,8 +54,8 @@ def inverterqueryincrement():
         """ Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within
 	Enphase free Watt plan https://developer.enphase.com/plans """
         system_watt = float(comm_creds['peak_watt'])
-        if system_watt <= 288:
-                inverter_query_increment = int(86400 / system_watt)
+        if system_watt <= 144:
+                inverter_query_increment = int(86400/2/system_watt)
         else:
                 inverter_query_increment = 300
 	# inverter_query_increment = 300 # Uncomment for testing
