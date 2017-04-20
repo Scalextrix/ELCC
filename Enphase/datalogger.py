@@ -6,7 +6,7 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "3.1"
+__version__ = "3.2"
 
 import gc
 import getpass
@@ -95,7 +95,7 @@ def maintainenergylog():
         conn = sqlite3.connect(dbname)
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL, time REAL)''')
-	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+	now_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
         c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
         conn.commit()
         row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
@@ -177,7 +177,7 @@ def slraddresstest():
                         print ("********ERROR: SolarCoin address invlaid, check and try again *******")
 
 def timestamp():
-	now_time = time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime())
+	now_time = time.strftime("%c", time.localtime())
 	print ("*** {} Starting Datalogger Cycle  ***") .format(now_time)
 
 def urltestandjsonload():
@@ -192,7 +192,9 @@ def urltestandjsonload():
                 return json_data
 	
 def writetoblockchain():
-	tx_message = str('Note this is all public information '+comm_creds['solar_panel']+'; '+comm_creds['solar_inverter']+'; '+comm_creds['peak_watt']+'kW ;'+comm_creds['latitude']+','+comm_creds['longitude']+'; '+comm_creds['message']+'; '+comm_creds['rpi']+'; Total MWh: {}' .format(total_energy)+'; From {} To {}' .format(energy_log['start_time'], energy_log['end_time'])+'; '+manufacturer_attribution)
+	tx_message = str('{"module":"'+comm_creds['solar_panel']+'","inverter":"'+comm_creds['solar_inverter']+'","data-logger":"","pyranometer":"","windsensor":"","rainsensor":"","waterflow":"","Web_layer_API":"","Size_kW":"'
+	+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']+'","Comment":"'+comm_creds['message']+'","IoT":"'
+	+comm_creds['rpi']+'","period":"{};{}","MWh":"{}"' .format(energy_log['start_time'], energy_log['end_time'], total_energy)+'} '+manufacturer_attribution)		 
 	print("Initiating SolarCoin.....  TXID:")
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
