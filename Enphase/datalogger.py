@@ -18,6 +18,10 @@ import sys
 import time
 import urllib2
 
+energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
+api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
+
 def calculateamounttosend():
         wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
 	if wallet_balance < 0.0005:
@@ -58,7 +62,7 @@ def inverterqueryincrement():
                 inverter_query_increment = int(86400/2/system_watt)
         else:
                 inverter_query_increment = 300
-	# inverter_query_increment = 300 # Uncomment for testing
+	#inverter_query_increment = 86 # Uncomment for testing
         return inverter_query_increment
 
 def latitudetest():
@@ -201,10 +205,6 @@ def writetoblockchain():
 	subprocess.call(['solarcoind', 'sendtoaddress', comm_creds['solarcoin_address'], send_amount, '', '', tx_message], shell=False)
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-
-energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
-manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
-api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
 solarcoin_passphrase = passphrasetest()	
 calculateamounttosend()
