@@ -62,7 +62,7 @@ def inverterqueryincrement():
                 inverter_query_increment = int(86400/2/system_watt)
         else:
                 inverter_query_increment = 300
-	#inverter_query_increment = 86 # Uncomment for testing
+	#inverter_query_increment = 300 # Uncomment for testing
         return inverter_query_increment
 
 def latitudetest():
