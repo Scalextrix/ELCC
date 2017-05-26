@@ -17,7 +17,9 @@ pin 17.
 
 When you have everthing connected:
 > cd ELCC/LED
+
 > chmod +x datalogger.py
+
 > ./datalogger.py
 
 You will need to enter the start kWh reading from your PV generation meter each time you start the datalogger program.
