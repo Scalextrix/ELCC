@@ -200,6 +200,7 @@ if os.path.isfile("LED.db"):
 	c = conn.cursor()
 	c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 	conn.commit()
+	conn.close()
 else:
 	print "No database found, please complete the following credentials: "
 	solarcoin_address = slraddresstest()
