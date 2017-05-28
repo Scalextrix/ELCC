@@ -43,6 +43,12 @@ def calculateamounttosend():
                 print ("*******WARNING: low wallet balance of {}SLR, send amount of {} may result in higher TX fees*******") .format(wallet_balance, send_amount)
         return send_amount
 
+def currentenergycounter(channel):
+        global current_energy
+        current_energy = current_energy + 0.000001
+        print "\033[K", "Current kWh {}".format (current_energy * 1000), "\r",
+        sys.stdout.flush()
+
 def databasecreate():
         conn = sqlite3.connect(dbname)
         c = conn.cursor()
@@ -190,6 +196,10 @@ calculateamounttosend()
 if os.path.isfile("LED.db"):
         print "Found LED database"
         dbname = "LED.db"
+	conn = sqlite3.connect(dbname)
+	c = conn.cursor()
+	c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
+	conn.commit()
 else:
 	print "No database found, please complete the following credentials: "
 	solarcoin_address = slraddresstest()
@@ -201,19 +211,19 @@ else:
 	message = raw_input ("Add an optional message describing your system: ")
 	rpi = raw_input ("If you are staking on a Raspberry Pi note the Model: ")
 	databasecreate()
-total_energy = float(raw_input ("What is the start reading on your Solar PV meter: "))/1000
+
+total_energy = float(raw_input ("In kWh (kilo-Watt hours) what is the start reading on your Solar PV meter: "))/1000
 current_energy=0
 energy_log = maintainenergylog()
 comm_creds = retrievecommoncredentials()
 print ("Waiting for {} kWh of energy to be generated") .format(energy_reporting_increment * 1000)
-while True:
-	if gpio.input(17) == 0:
-		time.sleep(0.1)
-		current_energy = current_energy + 0.000001
 
+gpio.add_event_detect(17, gpio.RISING, callback=currentenergycounter, bouncetime=700)
+
+while True:
         if current_energy >= energy_reporting_increment:
 		total_energy = total_energy + current_energy
-		print total_energy
+		print 'Reporting Total Energy {} MWh'.format (total_energy/1000)
 		timestamp()
 		energy_log = maintainenergylog()
                 send_amount = calculateamounttosend()
