@@ -16,7 +16,7 @@ TIP: To run the datalogger in the background you can use:
 
 > sudo apt-get install screen
 
-Then yo start a new screen:
+Then to start a new screen:
 > screen
 
 To resume a screen:
