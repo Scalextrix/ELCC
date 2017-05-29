@@ -10,3 +10,12 @@ https://developer.enphase.com/plans, if this becomes over subscribed, users will
 
 The Enphase Envoy system also has a LAN API that can be used when the data collection can be made from within
 the solar PV operators LAN, this is the preferred method as it is not centralized, has no usage/frequency tiers or charges.
+
+To start the datalogger:
+> git clone https://github.com/Scalextrix/ELCC
+
+> cd ELCC/Enphase
+
+> chmod +x datalogger.py
+
+> ./datalogger.py
