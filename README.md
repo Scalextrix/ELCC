@@ -11,6 +11,20 @@ See your inverter manufacturer directory for specific integrations.  The LED dir
 Script asks for wallet passphrase (passphrase is invisible while typed), then asks for LAN or Web API (if available), it will unlock the wallet then put the wallet back to staking after the transaction is issued; the  script assumes the wallet is encrypted and that the wallet is either fully locked, or unlocked for staking before the script is initiated.
 The solar inverter will be queried relative to the solar installation kWp (kilo-Watts peak) with large systems more frequently up to a maximum of 300 seconds, small systems as little as once every 20 days; if the amount of energy collected equals or exceeds 10kWh since the last check then the total system MWh will report to the block-chain; otherwise the solar inverter will be queried every x seconds until the total exceeds 10kWh.  Once the MWh of the system is reported to the block-chain, a new MWh checkpoint is set and the process re-starts querying every x seconds.
 
+TIP: To run the datalogger in the background you can use:
+> sudo apt-get update -y && sudo apt-get upgrade
+
+> sudo apt-get install screen
+
+Then yo start a new screen:
+> screen
+
+To resume a screen:
+> screen -r
+
+To leave a screen session and leave it running CRTL+a then d.
+To leave a screen session and kill it CTRL+a then k.
+
 Example Transaction: https://chainz.cryptoid.info/slr/tx.dws?b391aa1bcb0aefd8e8f661b1acd6fd0b784c0e8856ed6c2d8546b6246d623ae8.htm
 
 Any tips to my SLR address: 8cESoZyjFvx2Deq6VjQLqPfAwu8UXjcBkK  Thanks
