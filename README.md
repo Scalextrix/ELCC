@@ -25,6 +25,6 @@ To resume a screen:
 To leave a screen session and leave it running CRTL+a then d.
 To leave a screen session and kill it CTRL+a then k.
 
-Example Transaction: https://chainz.cryptoid.info/slr/tx.dws?b391aa1bcb0aefd8e8f661b1acd6fd0b784c0e8856ed6c2d8546b6246d623ae8.htm
+Example Transaction: https://chainz.cryptoid.info/slr/tx.dws?6b219bbd53529b30692dfbb5dbef0f03f9ea27a975b4eb9fbbd9be62ab7c0614.htm
 
 Any tips to my SLR address: 8cESoZyjFvx2Deq6VjQLqPfAwu8UXjcBkK  Thanks
