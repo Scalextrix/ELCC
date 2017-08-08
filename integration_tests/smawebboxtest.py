@@ -74,7 +74,7 @@ inverter = urlopen(url)
 print("Loading JSON data")
 data = json.load(inverter)
 for x in data ['overview']:
-        total_energy = x['value']
+	total_energy = x['value']
 total_energy = float(total_energy)
 total_energy = total_energy / 1000000
 print("Total Energy MWh: {:.6f}") .format(total_energy)
@@ -88,6 +88,6 @@ subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '999999
 subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '', '', energylifetime], shell=False)
 subprocess.call(['solarcoind', 'walletlock'], shell=False)
 subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-			     
+
 del solarcoin_passphrase
 gc.collect()

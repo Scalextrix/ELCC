@@ -71,7 +71,7 @@ total_energy = data['TOTAL_ENERGY']
 total_energy = float(total_energy)
 total_energy = total_energy / 1000000
 print("Total Energy MWh: {:.6f}") .format(total_energy)
-	
+
 print("Initiating SolarCoin")
 energylifetime = str('Note this is all public information '+solar_panel+'; '+solar_inverter+'; '+peak_watt+'kW ;'+latitude+','+longitude+'; '+message+'; '+rpi+'; Total MWh: {}' .format(total_energy)')
 print("SolarCoin TXID:")
@@ -80,6 +80,6 @@ subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '999999
 subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, '0.000001', '', '', energylifetime], shell=False)
 subprocess.call(['solarcoind', 'walletlock'], shell=False)
 subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-			     
+
 del solarcoin_passphrase
 gc.collect()
