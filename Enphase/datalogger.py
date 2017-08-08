@@ -46,7 +46,7 @@ def databasecreate():
 	c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?);", (system_id, user_id, envoy_ip, solarcoin_address, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
 	conn.commit()
 	conn.close()
-	
+
 def databasenamebroken():
 	del solarcoin_passphrase
 	gc.collect()
@@ -194,7 +194,7 @@ def urltestandjsonload():
 		sys.exit()
 	else:
 		return json_data
-	
+
 def writetoblockchain():
 	tx_message = str('{"module":"'+comm_creds['solar_panel']+'","inverter":"'+comm_creds['solar_inverter']+'","data-logger":"","pyranometer":"","windsensor":"","rainsensor":"","waterflow":"","Web_layer_API":"","Size_kW":"'
 	+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']+'","Comment":"'+comm_creds['message']+'","IoT":"'
