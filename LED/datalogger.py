@@ -36,11 +36,11 @@ def calculateamounttosend():
 		send_amount = str(random.uniform(1, 5))[0:10]
 		print ('Based on wallet balance of {} amount to send to self set to a random amount between 1 & 5 SLR') .format(wallet_balance)
 	elif wallet_balance < 10 and wallet_balance >= 0.1:
-		send_amount = str(random.uniform(0.01, 0.05))[0:9]
+		send_amount = str(random.uniform(0.01, 0.05))[0:10]
 		print ('Based on wallet balance of {} amount to send to self set to random amount between 0.01 & 0.05 SLR') .format(wallet_balance)
 	else:
 		upper_limit = wallet_balance/5
-		send_amount = str(random.uniform(0.00001, upper_limit))[0:9]
+		send_amount = str(random.uniform(0.00001, upper_limit))[0:10]
 		print ("*******WARNING: low wallet balance of {}SLR, send amount of {} may result in higher TX fees*******") .format(wallet_balance)
 	return send_amount
 
