@@ -33,14 +33,15 @@ def calculateamounttosend():
 		time.sleep(10)
 		sys.exit()
 	elif wallet_balance >= 10:
-		send_amount = str(1)
-		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
-	elif wallet_balance < 10 and wallet_balance >= 0.03:
-		send_amount = str(0.01)
-		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+		send_amount = str(random.uniform(1, 5))[0:10]
+		print ('Based on wallet balance of {} amount to send to self set to a random amount between 1 & 5 SLR') .format(wallet_balance)
+	elif wallet_balance < 10 and wallet_balance >= 0.1:
+		send_amount = str(random.uniform(0.01, 0.05))[0:10]
+		print ('Based on wallet balance of {} amount to send to self set to random amount between 0.01 & 0.05 SLR') .format(wallet_balance)
 	else:
-		send_amount = str(0.00001)
-		print ("*******WARNING: low wallet balance of {}SLR, send amount of {} may result in higher TX fees*******") .format(wallet_balance, send_amount)
+		upper_limit = wallet_balance/5
+		send_amount = str(random.uniform(0.00001, upper_limit))[0:10]
+		print ("*******WARNING: low wallet balance of {}SLR, send amount of {} may result in higher TX fees*******") .format(wallet_balance)
 	return send_amount
 
 def currentenergycounter(channel):
@@ -52,8 +53,8 @@ def currentenergycounter(channel):
 def databasecreate():
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (SLRaddress TEXT, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
-	c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?);", (solarcoin_address, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
+	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
+	c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?);", (datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
 	conn.commit()
 	conn.close()
 
@@ -150,7 +151,7 @@ def refreshenergylogandsleep():
 def retrievecommoncredentials():
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	solarcoin_address = str(c.execute('select SLRaddress from SYSTEMDETAILS').fetchone()[0])
+	datalogger_id = str(c.execute('select dataloggerid from SYSTEMDETAILS').fetchone()[0])
 	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
 	solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
 	peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
@@ -159,22 +160,13 @@ def retrievecommoncredentials():
 	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
 	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
-	return {'solarcoin_address':solarcoin_address, 'solar_panel':solar_panel, 'solar_inverter':solar_inverter, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'rpi':rpi}
+	return {'datalogger_id':datalogger_id, 'solar_panel':solar_panel, 'solar_inverter':solar_inverter, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'rpi':rpi}
 
 def sleeptimer():
 	energy_left = (energy_reporting_increment - (energy_log['end_energy'] - energy_log['start_energy'])) * 1000
 	print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
 	print ("******** "+manufacturer_attribution+" ********")
 	time.sleep(inverter_query_increment)
-
-def slraddresstest():
-	while True:
-		solarcoin_address = raw_input ("What is your own SolarCoin Address: ")
-		output = subprocess.check_output(['solarcoind', 'validateaddress', solarcoin_address], shell=False)[18:-3]
-		if output != 'false':
-			return solarcoin_address
-		else:
-			print ("********ERROR: SolarCoin address invlaid, check and try again *******")
 
 def timestamp():
 	now_time = time.strftime("%c", time.localtime())
@@ -185,9 +177,10 @@ def writetoblockchain():
 	+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']+'","Comment":"'+comm_creds['message']+'","IoT":"'
 	+comm_creds['rpi']+'","period":"{};{}","MWh":"{}"' .format(energy_log['start_time'], energy_log['end_time'], total_energy)+'} '+manufacturer_attribution)
 	print("Initiating SolarCoin.....  TXID:")
+	solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-	subprocess.call(['solarcoind', 'sendtoaddress', comm_creds['solarcoin_address'], send_amount, '', '', tx_message], shell=False)
+	subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', tx_message], shell=False)
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
@@ -203,7 +196,7 @@ if os.path.isfile("LED.db"):
 	conn.close()
 else:
 	print "No database found, please complete the following credentials: "
-	solarcoin_address = slraddresstest()
+	datalogger_id = hashlib.sha1(uuid.uuid4().hex).hexdigest()	
 	solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
 	solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
 	peak_watt = peakwatttest()
