@@ -21,7 +21,7 @@ import time
 import urllib2
 import uuid
 
-energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+energy_reporting_increment = 0.000001 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
@@ -32,15 +32,15 @@ def calculateamounttosend():
 		time.sleep(10)
 		sys.exit()
 	elif wallet_balance >= 10:
-		send_amount = str(random.uniform(1, 5))[0:10]
-		print ('Based on wallet balance of {} amount to send to self set to a random amount between 1 & 5 SLR') .format(wallet_balance)
+		send_amount = str(slr_send_base)[0:10]
+		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
 	elif wallet_balance < 10 and wallet_balance >= 0.1:
-		send_amount = str(random.uniform(0.01, 0.05))[0:10]
-		print ('Based on wallet balance of {} amount to send to self set to random amount between 0.01 & 0.05 SLR') .format(wallet_balance)
+		send_amount = str(slr_send_base/100)[0:10]
+		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
 	else:
 		upper_limit = wallet_balance/5
 		send_amount = str(random.uniform(0.00001, upper_limit))[0:10]
-		print ("*******WARNING: low wallet balance of {}SLR, send amount of {} may result in higher TX fees*******") .format(wallet_balance)
+		print ("*******WARNING: low wallet balance of {}SLR, low send amount may result in higher TX fees*******") .format(wallet_balance)
 	return send_amount
 
 def databasecreate():
@@ -66,7 +66,7 @@ def inverterqueryincrement():
 		inverter_query_increment = int(86400/2/system_watt)
 	else:
 		inverter_query_increment = 300
-	# inverter_query_increment = 300 # Uncomment for testing
+	inverter_query_increment = 300 # Uncomment for testing
 	return inverter_query_increment
 
 def latitudetest():
@@ -193,7 +193,7 @@ def urltestandjsonload():
 def writetoblockchain():
 	tx_message = str('{"UserID":"'+comm_creds['datalogger_id']+'","module":"'+comm_creds['solar_panel']+'","inverter":"'+comm_creds['solar_inverter']+'","data-logger":"","pyranometer":"","windsensor":"","rainsensor":"","waterflow":"","Web_layer_API":"","Size_kW":"'
 	+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']+'","Comment":"'+comm_creds['message']+'","IoT":"'
-	+comm_creds['rpi']+'","period":"{};{}","MWh":"{}"' .format(energy_log['start_time'], energy_log['end_time'], total_energy)+'} '+manufacturer_attribution)		 
+	+comm_creds['rpi']+'","period":"{};{}","Total MWh":"{}"' .format(energy_log['start_time'], energy_log['end_time'], total_energy)+'} '+manufacturer_attribution)		 
 	print("Initiating SolarCoin.....  TXID:")
 	solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
@@ -202,7 +202,8 @@ def writetoblockchain():
 	subprocess.call(['solarcoind', 'walletlock'], shell=False)
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
-solarcoin_passphrase = passphrasetest()	
+solarcoin_passphrase = passphrasetest()
+slr_send_base = random.uniform(1, 3)
 calculateamounttosend()
 
 if os.path.isfile("APIlan.db"):
@@ -244,24 +245,32 @@ else:
 comm_creds = retrievecommoncredentials()
 inverter_query_increment = float(inverterqueryincrement())
 while True:
-	timestamp()
-	if os.path.isfile("APIlan.db"):
-		url = ("http://"+comm_creds['envoy_ip']+"/api/v1/production")
-		json_data = urltestandjsonload()
-		total_energy = float(json_data['wattHoursLifetime'])/1000000
-	elif os.path.isfile("APIweb.db"):
-		url = ("https://api.enphaseenergy.com/api/v2/systems/"+comm_creds['system_id']+"/summary?&key="+api_key+"&user_id="+comm_creds['user_id'])
-		json_data = urltestandjsonload()
-		total_energy = (float(json_data['energy_lifetime']) + float(json_data['energy_today'])) / 1000000
-	else:
-		databasenamebroken()
+	print ("---------- Press CTRL + c at any time to stop the Datalogger ----------")
+	try:
+		timestamp()
+		if os.path.isfile("APIlan.db"):
+			url = ("http://"+comm_creds['envoy_ip']+"/api/v1/production")
+			json_data = urltestandjsonload()
+			total_energy = float(json_data['wattHoursLifetime'])/1000000
+		elif os.path.isfile("APIweb.db"):
+			url = ("https://api.enphaseenergy.com/api/v2/systems/"+comm_creds['system_id']+"/summary?&key="+api_key+"&user_id="+comm_creds['user_id'])
+			json_data = urltestandjsonload()
+			total_energy = (float(json_data['energy_lifetime']) + float(json_data['energy_today'])) / 1000000
+		else:
+			databasenamebroken()
 
-	print("Inverter API call successful: Total Energy MWh: {:.6f}") .format(total_energy)
-	energy_log = maintainenergylog()
+		print("Inverter API call successful: Total Energy MWh: {:.6f}") .format(total_energy)
+		energy_log = maintainenergylog()
 
-	if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
-		send_amount = calculateamounttosend()
-		writetoblockchain()
-		refreshenergylogandsleep()
-	else:
-		sleeptimer()
+		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
+			send_amount = calculateamounttosend()
+			writetoblockchain()
+			refreshenergylogandsleep()
+		else:
+			sleeptimer()
+	except KeyboardInterrupt:
+        	del solarcoin_passphrase
+        	gc.collect()
+		print("Stopping Datalogger in 10 seconds")
+		time.sleep(10)
+		sys.exit()
