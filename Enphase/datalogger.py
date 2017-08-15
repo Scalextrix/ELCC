@@ -21,7 +21,7 @@ import time
 import urllib2
 import uuid
 
-energy_reporting_increment = 0.000001 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
@@ -66,7 +66,7 @@ def inverterqueryincrement():
 		inverter_query_increment = int(86400/2/system_watt)
 	else:
 		inverter_query_increment = 300
-	inverter_query_increment = 300 # Uncomment for testing
+	#inverter_query_increment = 300 # Uncomment for testing
 	return inverter_query_increment
 
 def latitudetest():
