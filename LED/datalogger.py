@@ -33,11 +33,11 @@ def calculateamounttosend():
 		time.sleep(10)
 		sys.exit()
 	elif wallet_balance >= 10:
-		send_amount = str(random.uniform(1, 5))[0:10]
-		print ('Based on wallet balance of {} amount to send to self set to a random amount between 1 & 5 SLR') .format(wallet_balance)
+		send_amount = str(slr_send_base)[0:10]
+		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount))
 	elif wallet_balance < 10 and wallet_balance >= 0.1:
-		send_amount = str(random.uniform(0.01, 0.05))[0:10]
-		print ('Based on wallet balance of {} amount to send to self set to random amount between 0.01 & 0.05 SLR') .format(wallet_balance)
+		send_amount = str(slr_send_base/100)[0:10]
+		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
 	else:
 		upper_limit = wallet_balance/5
 		send_amount = str(random.uniform(0.00001, upper_limit))[0:10]
@@ -185,7 +185,9 @@ def writetoblockchain():
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
 solarcoin_passphrase = passphrasetest()
+slr_send_base = random.uniform(1, 3)
 calculateamounttosend()
+
 if os.path.isfile("LED.db"):
 	print "Found LED database"
 	dbname = "LED.db"
