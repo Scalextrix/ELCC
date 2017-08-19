@@ -6,7 +6,7 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "4.0"
+__version__ = "4.1"
 
 import gc
 import getpass
@@ -26,20 +26,26 @@ manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
 def calculateamounttosend():
+	utxos = json.loads(subprocess.check_output(['solarcoind', 'listunspent'], shell=False))
+	for u in utxos:
+       		amounts = [u['amount'] for u in utxos]
 	wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
 	if wallet_balance < 0.0005:
 		print ("*******ERROR: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet *******") .format(wallet_balance)
 		time.sleep(10)
 		sys.exit()
-	elif wallet_balance >= 10:
-		send_amount = str(slr_send_base)[0:10]
-		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
-	elif wallet_balance < 10 and wallet_balance >= 0.1:
-		send_amount = str(slr_send_base/100)[0:10]
-		print ('Based on wallet balance of {} amount to send to self set to {} SLR') .format(wallet_balance, send_amount)
+	elif wallet_balance >= 0.1:
+		small_amounts = [i for i in amounts if i >=0.01 and i <=0.1]
+		if len(small_amounts) == 0:
+			tiny_amounts = [i for i in amounts if i <0.01]
+			send_amount = str(sum(tiny_amounts))
+			if send_amount < 0.01:
+				send_amount = str(sum(tiny_amounts) + 0.01)
+		else:
+			send_amount = str(float(str(random.sample(small_amounts, 1))[1:-1])-0.0001)
+		print ('Based on wallet balance of {} amount to send to self set to any amount between 0.01 & 0.1 SLR') .format(wallet_balance)
 	else:
-		upper_limit = wallet_balance/5
-		send_amount = str(random.uniform(0.00001, upper_limit))[0:10]
+		send_amount = str(max([i for i in amounts]))
 		print ("*******WARNING: low wallet balance of {}SLR, low send amount may result in higher TX fees*******") .format(wallet_balance)
 	return send_amount
 
@@ -203,7 +209,6 @@ def writetoblockchain():
 	subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 
 solarcoin_passphrase = passphrasetest()
-slr_send_base = random.uniform(1, 3)
 calculateamounttosend()
 
 if os.path.isfile("APIlan.db"):
