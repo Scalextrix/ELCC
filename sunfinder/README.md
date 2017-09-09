@@ -1,4 +1,5 @@
 The sunfinder script is designed to integrate with the SolarCoin Block Explorer at https://chainz.cryptoid.info/slr/
+and extract solar PV generation data from the SolarCoin blockchain
 
 # Dependencies
 
