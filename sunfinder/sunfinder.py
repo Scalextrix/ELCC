@@ -50,11 +50,5 @@ while True:
 	if counter == 20:
 		break
 
-last_message = str(json_decoded[0]['message'])
-last_messagej = last_message[last_message.find('{'):last_message.find('}')+1]
-last_message_decoded = json.loads(last_messagej)
-total_mwh = last_message_decoded['Total MWh']
-
-
 
 
