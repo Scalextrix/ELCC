@@ -91,11 +91,12 @@ while True:
 		conn = sqlite3.connect('solardetails.db')
 		c = conn.cursor()
 		row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
-		energyplot = c.execute('select totalmwh FROM SOLARDETAILS').fetchall()[0]
+		energyplot = c.execute('select totalmwh FROM SOLARDETAILS').fetchall()
 		conn.close()
 		rows_added = row_count_end - row_count_start
 		print ('{} new results added to database').format(rows_added)
 		plt.plot(energyplot)
+		plt.xlim(row_count_end, 0)
 		plt.ylabel('Energy MWh')
 		plt.xlabel('Time')
 		plt.show()
