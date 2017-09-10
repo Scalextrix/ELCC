@@ -81,7 +81,7 @@ while True:
 			print ('In block: {}').format(block)
 			print ('UserID: {}').format(datalogger_id)
 			print ('made TX hash: {}').format(tx_hash)
-			print ('and recorded: {} MWh of energy').format(total_mwh)
+			print ('and recorded a total of: {} MWh of energy').format(total_mwh)
 			print''
 			counter = counter+1
 			if counter == 20:
@@ -91,9 +91,11 @@ while True:
 		row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
 		conn.close()
 		rows_added = row_count_end - row_count_start
-		print ('{} rows added to database').format(rows_added)
-		print 'Waiting 5 minutes'
+		print ('{} new results added to database').format(rows_added)
+		print 'Waiting 5 minutes, hit CTRL + c to stop'
 		time.sleep(300)		
 
 	except KeyboardInterrupt:
+		print 'Stopping Sunfinder in 10 seconds'
+		time.sleep(10)
 		sys.exit()
