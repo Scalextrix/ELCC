@@ -15,11 +15,13 @@ import sqlite3
 conn = sqlite3.connect('solardetails.db')
 c = conn.cursor()
 energyplot = c.execute('select totalmwh FROM SOLARDETAILS').fetchall()
+blocknumber = c.execute('select block FROM SOLARDETAILS').fetchall()
+unixtime = c.execute('select time FROM SOLARDETAILS').fetchall()
+datetime = c.execute('select period FROM SOLARDETAILS').fetchall()
 row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
 conn.close()
-plt.plot(energyplot)
-plt.xlim(row_count_end, 0)
-plt.ylabel('Energy MWh')
-plt.xlabel('Time')
+plt.plot(blocknumber, energyplot)
+plt.ylabel('Total Energy MWh')
+plt.xlabel('SolarCoin Blocks')
 plt.show()
 
