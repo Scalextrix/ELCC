@@ -40,11 +40,14 @@ while True:
 		json_data = str((requests.get(url, headers=headers)).content.decode())
 		json_decoded = json.loads(json_data)
 
+		before_block = json_decoded['before']
+		more_blocks = json_decoded['more']
+
 		for a in json_decoded:
-			hashes = [a['hash'] for a in json_decoded]
-			blocks = [a['height'] for a in json_decoded]
-			block_t = [a['time'] for a in json_decoded]
-			messages = [a['message'] for a in json_decoded]
+			hashes = [a['hash'] for a in json_decoded['txs']]
+			blocks = [a['height'] for a in json_decoded['txs']]
+			block_t = [a['time'] for a in json_decoded['txs']]
+			messages = [a['message'] for a in json_decoded['txs']]
 
 		databasecreate()
 	        conn = sqlite3.connect('solardetails.db')
@@ -84,7 +87,7 @@ while True:
 			print ('and recorded a total of: {} MWh of energy').format(total_mwh)
 			print''
 			counter = counter+1
-			if counter == 20:
+			if counter == 100:
 				break
 		conn = sqlite3.connect('solardetails.db')
 		c = conn.cursor()
