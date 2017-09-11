@@ -10,8 +10,6 @@ __license__ = "The Unlicense"
 __version__ = "1.0"
 
 import json
-import numpy as np
-import matplotlib.pyplot as plt
 import sqlite3
 import sys
 import time
@@ -91,15 +89,9 @@ while True:
 		conn = sqlite3.connect('solardetails.db')
 		c = conn.cursor()
 		row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
-		energyplot = c.execute('select totalmwh FROM SOLARDETAILS').fetchall()
 		conn.close()
 		rows_added = row_count_end - row_count_start
 		print ('{} new results added to database').format(rows_added)
-		plt.plot(energyplot)
-		plt.xlim(row_count_end, 0)
-		plt.ylabel('Energy MWh')
-		plt.xlabel('Time')
-		plt.show()
 		print 'Waiting 5 minutes, hit CTRL + c to stop'
 		time.sleep(300)		
 
