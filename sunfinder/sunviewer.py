@@ -15,6 +15,7 @@ import sqlite3
 conn = sqlite3.connect('solardetails.db')
 c = conn.cursor()
 energyplot = c.execute('select totalmwh FROM SOLARDETAILS').fetchall()
+row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
 conn.close()
 plt.plot(energyplot)
 plt.xlim(row_count_end, 0)
