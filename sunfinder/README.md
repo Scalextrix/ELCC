@@ -7,6 +7,8 @@ sunfinder.py is written for Python 2.7 and need the 'requests' module to be inst
 
 > sudo apt-get install python-requests
 
+You also need an API Key which can be requested from this page https://chainz.cryptoid.info/api.key.dws
+
 sunviewer.py is also in Python 2.7 and needs 'numpy' and 'matplotlib' to be installed
 
 > sudo apt-get install python-numpy

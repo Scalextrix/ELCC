@@ -15,10 +15,6 @@ import sys
 import time
 import requests
 
-api_key = "ab076d5d15c5"
-last_block = ""
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'}
-
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
@@ -33,6 +29,9 @@ def databaseupdate():
         conn.commit()
         conn.close()
 
+last_block = ""
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'}
+api_key = raw_input('What is your Chainz API Key?: ')
 while True:
 	try:
 		print "Attempting Chainz API call and JSON data load"
