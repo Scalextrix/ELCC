@@ -50,6 +50,7 @@ while True:
 			block_t = [a['time'] for a in json_decoded['txs']]
 			messages = [a['message'] for a in json_decoded['txs']]
 
+		first_block = blocks[0]
 		last_block = blocks[-1]
 		counter_max = len(blocks)
 
@@ -62,8 +63,16 @@ while True:
 	        	conn = sqlite3.connect('solardetails.db')
                 	c = conn.cursor()
                 	row_count_start = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
-                	conn.close()
+			dbase_blocks = c.execute('select block FROM SOLARDETAILS').fetchall()
+			conn.close()
 
+		dbase_blocks = [int(a[0]) for a in dbase_blocks] 
+
+		if first_block in dbase_blocks:
+			print 'First block returned from API already in database, nothing new: Please try again later, stopping in 10 seconds'
+			time.sleep(10)
+			sys.exit()
+		else:
 			counter = 0
 			while True:
 				try:
