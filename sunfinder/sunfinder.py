@@ -112,14 +112,13 @@ while True:
 					message = first_message_decoded['Comment']
 					rpi = first_message_decoded['IoT']
 					period = first_message_decoded['period']
-					total_mwh = first_message_decoded['Total MWh']
 					databaseupdate()
 					print ('In block: {}').format(block)
 					print ('UserID: {}').format(datalogger_id)
 					print ('made TX hash: {}').format(tx_hash)
 					print ('and recorded a total of: {} MWh of energy').format(total_mwh)
 					print''
-		        	except:
+				except:
 					print ('Skipping load: Message in block {} does not conform').format(block)
 					print''
 				counter = counter+1
@@ -138,7 +137,7 @@ while True:
 				time.sleep(10)
 				sys.exit()
 			else:	
-				print 'Waiting 10 seconds so as not to spam API'
+				print 'Waiting 10 seconds so as not to spam API, hit CTRL + c to stop search'
 				time.sleep(10)
 
 	except KeyboardInterrupt:
