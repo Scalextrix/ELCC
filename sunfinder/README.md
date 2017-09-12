@@ -28,3 +28,5 @@ Otherwise all modules are standard.  To use sunfinder.py/sunviewer.py
 When Sunfinder has found all data and is waiting, hit CTRL + c to stop it
 
 > ./sunviewer.py
+
+To run on a schedule add CRON jobs

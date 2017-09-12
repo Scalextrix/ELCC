@@ -51,10 +51,12 @@ while True:
 			messages = [a['message'] for a in json_decoded['txs']]
 
 		last_block = blocks[-1]
+		counter_max = len(blocks)
 
                 if last_block <= 1700000:
-                        print 'Minimum safe blockheight of 1700000 reached: Waiting 1 day for more results, hit CTRL + c to stop'
-			time.sleep(86400)	
+                        print 'Minimum safe blockheight of 1700000 reached: Exiting in 10 seconds'
+			time.sleep(10)
+			sys.exit()	
 		else:
 			databasecreate()
 	        	conn = sqlite3.connect('solardetails.db')
@@ -98,7 +100,7 @@ while True:
 					print ('Skipping load: Message in block {} does not conform').format(block)
 					print''
 				counter = counter+1
-				if counter == 100:
+				if counter == counter_max:
 					break
 
 			conn = sqlite3.connect('solardetails.db')
@@ -109,9 +111,11 @@ while True:
 			print ('{} new results added to database').format(rows_added)
 			print ('Any more blocks to load?: {}').format(more_blocks)
 			if more_blocks != True:
-				print 'Waiting 1 day for more results, or hit CTRL + c to stop'
-				time.sleep(86400)
-			else:
+				print 'Found all blocks, exiting in 10 seconds'
+				time.sleep(10)
+				sys.exit()
+			else:	
+				print 'Waiting 10 seconds so as not to spam API'
 				time.sleep(10)
 
 	except KeyboardInterrupt:
