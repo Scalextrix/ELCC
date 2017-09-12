@@ -7,7 +7,13 @@ sunfinder.py is written for Python 2.7 and need the 'requests' module to be inst
 
 > sudo apt-get install python-requests
 
-Otherwise all modules are standard.  To use sunfinder.py
+sunviewer.py is also in Python 2.7 and needs 'numpy' and 'matplotlib' to be installed
+
+> sudo apt-get install python-numpy
+
+> sudo apt-get install python-matplotlib
+
+Otherwise all modules are standard.  To use sunfinder.py/sunviewer.py
 
 > git clone https://github.com/Scalextrix/ELCC
 
@@ -15,4 +21,10 @@ Otherwise all modules are standard.  To use sunfinder.py
 
 > chmod +x sunfinder.py
 
+> chmod +x sunviewer.py
+
 > ./sunfinder.py
+
+When Sunfinder has found all data and is waiting, hit CTRL + c to stop it
+
+> ./sunviewer.py
