@@ -10,10 +10,25 @@ __license__ = "The Unlicense"
 __version__ = "1.0"
 
 import json
+import os.path
 import sqlite3
 import sys
 import time
 import requests
+
+def apikeystore():
+	if os.path.isfile('APIkey.conf'):
+		print 'Found stored API key in APIkey.conf'
+		f = open('APIkey.conf', 'r')
+		api_key = f.readline()
+		f.close
+		return api_key
+	else:
+		api_key = raw_input('What is your Chainz API Key?: ')
+		f = open('APIkey.conf', 'wb')
+		f.write(api_key)
+		f.close()
+		return api_key	
 
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
@@ -31,7 +46,7 @@ def databaseupdate():
 
 last_block = ""
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'}
-api_key = raw_input('What is your Chainz API Key?: ')
+api_key = apikeystore()
 while True:
 	try:
 		print "Attempting Chainz API call and JSON data load"

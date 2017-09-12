@@ -1,2 +1,5 @@
 # Generated databases
 *.db
+
+# Generated configuration files
+*.conf
