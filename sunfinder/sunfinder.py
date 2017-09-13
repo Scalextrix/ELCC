@@ -132,6 +132,7 @@ while True:
 			conn = sqlite3.connect('solardetails.db')
 			c = conn.cursor()
 			c.execute('select * FROM SOLARDETAILS ORDER BY block DESC')
+			conn.commit()
 			row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
 			conn.close()
 			rows_added = row_count_end - row_count_start
