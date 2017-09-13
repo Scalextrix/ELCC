@@ -115,7 +115,7 @@ def maintainenergylog():
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
 	c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL, time REAL)''')
-	now_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+	now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 	c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
 	conn.commit()
 	row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]

@@ -68,8 +68,8 @@ while True:
 		last_block = blocks[-1]
 		counter_max = len(blocks)
 
-                if last_block <= 1700000:
-                        print 'Minimum safe blockheight of 1700000 reached: Exiting in 10 seconds'
+                if last_block <= 1899000:
+                        print 'Minimum safe blockheight of 1899000 reached: Exiting in 10 seconds'
 			time.sleep(10)
 			sys.exit()	
 		else:
