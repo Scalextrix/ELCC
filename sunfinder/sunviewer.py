@@ -10,10 +10,12 @@ __version__ = "1.0"
 
 
 import datetime as dt
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import numpy as np
+import time
 import sqlite3
+import sys
 
 xaxischooser = raw_input('Plot energy against "date" or "blocks"? ')
 
@@ -30,7 +32,6 @@ if xaxischooser == 'date':
 	plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
 	plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 	plt.plot(date, energyplot)
-	plt.subplots_adjust(bottom=.4)
 	plt.ylabel('Total Energy MWh')
 	plt.xlabel('Time')
 elif xaxischooser == 'blocks':
@@ -38,8 +39,11 @@ elif xaxischooser == 'blocks':
 	plt.ylabel('Total Energy MWh')
 	plt.xlabel('SolarCoin Blocks')
 else:
-	print 'You must either choose "date" or "blocks"'
+	print 'You must either choose "date" or "blocks", exit in 10 seconds'
+	time.sleep(10)
+	sys.exit()
 
+plt.subplots_adjust(bottom=.4)
 plt.xticks(rotation='vertical')
 plt.show()
 
