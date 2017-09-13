@@ -65,11 +65,10 @@ while True:
 			messages = [a['message'] for a in json_decoded['txs']]
 
 		first_block = blocks[0]
-		last_block = blocks[-1]
 		counter_max = len(blocks)
 
-                if last_block <= 1899000:
-                        print 'Minimum safe blockheight of 1899000 reached: Exiting in 10 seconds'
+                if last_block <= 1900000:
+                        print 'Minimum safe blockheight of 1900000 reached: Exiting in 10 seconds'
 			time.sleep(10)
 			sys.exit()	
 		else:
@@ -121,6 +120,11 @@ while True:
 				except:
 					print ('Skipping load: Message in block {} does not conform').format(block)
 					print''
+				if block <= 1900000:
+					break
+					print 'Minimum safe blockheight of 1900000 reached: Exiting in 10 seconds'
+					time.sleep(10)
+					sys.exit()
 				counter = counter+1
 				if counter == counter_max:
 					break
@@ -131,6 +135,11 @@ while True:
 			conn.close()
 			rows_added = row_count_end - row_count_start
 			print ('{} new results added to database').format(rows_added)
+			if block <= 1900000:
+				print 'Minimum safe blockheight of 1900000 reached: Exiting in 10 seconds'
+				time.sleep(10)
+				sys.exit()
+
 			print ('Any more blocks to load?: {}').format(more_blocks)
 			if more_blocks != True:
 				print 'Found all blocks, exiting in 10 seconds'

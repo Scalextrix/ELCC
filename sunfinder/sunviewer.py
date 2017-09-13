@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import sqlite3
 
-xaxischooser = raw_input 'Plot energy against "date" or "blocks"? '
+xaxischooser = raw_input('Plot energy against "date" or "blocks"? ')
 
 conn = sqlite3.connect('solardetails.db')
 c = conn.cursor()
