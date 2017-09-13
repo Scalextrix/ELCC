@@ -26,11 +26,11 @@ conn.close()
 
 if xaxischooser == 'date':
 	dates = [a[0][a[0].rfind(';')+1:] for a in datetime]
-	date = [dt.datetime.strptime(d,'%Y-%m-%d %H:%M:%S').date() for d in dates]
+	date = [dt.datetime.strptime(d,'%Y-%m-%d %H:%M:%S') for d in dates]
 	plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
-	plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+	plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 	plt.plot(date, energyplot)
-	plt.gcf().autofmt_xdate()
+	plt.subplots_adjust(bottom=.4)
 	plt.ylabel('Total Energy MWh')
 	plt.xlabel('Time')
 elif xaxischooser == 'blocks':
@@ -40,5 +40,6 @@ elif xaxischooser == 'blocks':
 else:
 	print 'You must either choose "date" or "blocks"'
 
+plt.xticks(rotation='vertical')
 plt.show()
 
