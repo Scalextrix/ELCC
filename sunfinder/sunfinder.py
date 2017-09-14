@@ -9,6 +9,7 @@ __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
 __version__ = "1.0"
 
+from datetime import datetime
 import json
 import os.path
 import sqlite3
@@ -33,17 +34,25 @@ def apikeystore():
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS SOLARDETAILS (txhash TEXT UNIQUE, block INTEGER PRIMARY KEY, time TEXT, dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT, period TEXT, totalmwh TEXT)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS SOLARDETAILS (unixdatetime INTEGER PRIMARY KEY, txhash TEXT UNIQUE, block INTEGER, time TEXT, dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT, period TEXT, totalmwh TEXT)''')
 	conn.commit()
 	conn.close()
 
 def databaseupdate():
 	conn = sqlite3.connect('solardetails.db')
         c = conn.cursor()
-     	c.execute("INSERT OR IGNORE INTO SOLARDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", (tx_hash, block, block_time, datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi, period, total_mwh,))
+     	c.execute("INSERT OR IGNORE INTO SOLARDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (enddatetime, tx_hash, block, block_time, datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi, period, total_mwh,))
         conn.commit()
         conn.close()
 
+def periodtounixtime():
+	#take the end time from the 'period' parameter and convert to unix time for use as primary key
+	timestamp = period[20:]
+	utc_dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+	enddatetime = (utc_dt - datetime(1970, 1, 1)).total_seconds()
+	return enddatetime
+
+min_safe_block = 1899758 #The first block where tx-message conforms to standard
 last_block = ""
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'}
 api_key = apikeystore()
@@ -66,18 +75,14 @@ while True:
 
 		first_block = blocks[0]
 		counter_max = len(blocks)
+		last_block = blocks[counter_max-1]
 
-                if last_block <= 1900000:
-                        print 'Minimum safe blockheight of 1900000 reached: Exiting in 10 seconds'
-			time.sleep(10)
-			sys.exit()	
-		else:
-			databasecreate()
-	        	conn = sqlite3.connect('solardetails.db')
-                	c = conn.cursor()
-                	row_count_start = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
-			dbase_blocks = c.execute('select block FROM SOLARDETAILS').fetchall()
-			conn.close()
+		databasecreate()
+		conn = sqlite3.connect('solardetails.db')
+		c = conn.cursor()
+		row_count_start = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
+		dbase_blocks = c.execute('select block FROM SOLARDETAILS').fetchall()
+		conn.close()
 
 		dbase_blocks = [int(a[0]) for a in dbase_blocks] 
 
@@ -86,7 +91,7 @@ while True:
 			time.sleep(10)
 			sys.exit()
 		else:
-			counter = 0
+			counter = counter_max-1
 			while True:
 				try:
 					tx_hash = hashes [counter]
@@ -111,6 +116,7 @@ while True:
 					message = first_message_decoded['Comment']
 					rpi = first_message_decoded['IoT']
 					period = first_message_decoded['period']
+					enddatetime = periodtounixtime()
 					databaseupdate()
 					print ('In block: {}').format(block)
 					print ('UserID: {}').format(datalogger_id)
@@ -120,23 +126,20 @@ while True:
 				except:
 					print ('Skipping load: Message in block {} does not conform').format(block)
 					print''
-				if block <= 1900000:
-					break
-					print 'Minimum safe blockheight of 1900000 reached: Exiting in 10 seconds'
-					time.sleep(10)
-					sys.exit()
-				counter = counter+1
-				if counter == counter_max:
+
+				counter = counter-1
+				if counter == -1:
 					break
 
 			conn = sqlite3.connect('solardetails.db')
 			c = conn.cursor()
 			row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
+			lowest_dbase_block = c.execute('select min(block) FROM SOLARDETAILS').fetchone()[0]
 			conn.close()
 			rows_added = row_count_end - row_count_start
 			print ('{} new results added to database').format(rows_added)
-			if block <= 1900000:
-				print 'Minimum safe blockheight of 1900000 reached: Exiting in 10 seconds'
+			if lowest_dbase_block <= min_safe_block:
+				print ('Minimum safe blockheight of {} reached: Exiting in 10 seconds').format(min_safe_block)
 				time.sleep(10)
 				sys.exit()
 
