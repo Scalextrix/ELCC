@@ -33,14 +33,14 @@ def apikeystore():
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS SOLARDETAILS (id INTEGER PRIMARY KEY AUTOINCREMENT, txhash TEXT UNIQUE, block TEXT, time TEXT, dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT, period TEXT, totalmwh TEXT)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS SOLARDETAILS (txhash TEXT UNIQUE, block INTEGER PRIMARY KEY, time TEXT, dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT, period TEXT, totalmwh TEXT)''')
 	conn.commit()
 	conn.close()
 
 def databaseupdate():
 	conn = sqlite3.connect('solardetails.db')
         c = conn.cursor()
-     	c.execute("INSERT OR IGNORE INTO SOLARDETAILS VALUES (NULL,?,?,?,?,?,?,?,?,?,?,?,?,?);", (tx_hash, block, block_time, datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi, period, total_mwh,))
+     	c.execute("INSERT OR IGNORE INTO SOLARDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);", (tx_hash, block, block_time, datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi, period, total_mwh,))
         conn.commit()
         conn.close()
 
@@ -131,8 +131,6 @@ while True:
 
 			conn = sqlite3.connect('solardetails.db')
 			c = conn.cursor()
-			c.execute('select * FROM SOLARDETAILS ORDER BY block DESC')
-			conn.commit()
 			row_count_end = c.execute('select count(*) FROM SOLARDETAILS').fetchone()[0]
 			conn.close()
 			rows_added = row_count_end - row_count_start
