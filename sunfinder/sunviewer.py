@@ -31,11 +31,11 @@ if xaxischooser == 'date':
 	date = [dt.datetime.strptime(d,'%Y-%m-%d %H:%M:%S') for d in dates]
 	plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
 	plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
-	plt.plot(date, energyplot)
+	plt.plot(date, energyplot, 'go')
 	plt.ylabel('Total Energy MWh')
 	plt.xlabel('Time')
 elif xaxischooser == 'blocks':
-	plt.plot(blocknumber, energyplot)
+	plt.plot(blocknumber, energyplot, 'go')
 	plt.ylabel('Total Energy MWh')
 	plt.xlabel('SolarCoin Blocks')
 else:
@@ -45,5 +45,6 @@ else:
 
 plt.subplots_adjust(bottom=.4)
 plt.xticks(rotation='vertical')
+plt.title('ElectriCChain: Data from the block-chain')
 plt.show()
 
