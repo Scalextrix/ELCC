@@ -24,12 +24,13 @@ conn = sqlite3.connect('solardetails.db')
 c = conn.cursor()
 if userselector == '':
 	energyplot = c.execute('select totalmwh FROM SOLARDETAILS').fetchall()
+	incenergyplot = c.execute('select incrementmwh FROM SOLARDETAILS').fetchall()
 	blocknumber = c.execute('select block FROM SOLARDETAILS').fetchall()
 	datetime = c.execute('select period FROM SOLARDETAILS').fetchall()
 	conn.close()
 else:
 	energyplot = c.execute('select totalmwh FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
-	incenergyplot = c.execute('select increment_mwh FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
+	incenergyplot = c.execute('select incrementmwh FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
 	blocknumber = c.execute('select block FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
 	datetime = c.execute('select period FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
 	conn.close()
@@ -37,7 +38,6 @@ else:
 energyplot = [float(f[0]) for f in energyplot]
 incenergyplot = [float(f[0]) for f in incenergyplot]
 blocknumber = [int(f[0]) for f in blocknumber]
-datetime = [str(f[0]) for f in datetime]
 
 if xaxischooser == 'date':
 	plt.title('Data from ElectriCChain')
