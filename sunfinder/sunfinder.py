@@ -3,7 +3,6 @@
 """sunfinder.py: Queries the Chainz SolarCoin Explorer API, pulls solar production data and 
 loads to database"""
 
-
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
@@ -34,16 +33,29 @@ def apikeystore():
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS SOLARDETAILS (unixdatetime INTEGER PRIMARY KEY, txhash TEXT UNIQUE, block INTEGER, time TEXT, dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT, period TEXT, totalmwh TEXT)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS SOLARDETAILS (unixdatetime INTEGER PRIMARY KEY, txhash TEXT UNIQUE, block INTEGER, time TEXT, dataloggerid BLOB, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT, period TEXT, totalmwh REAL, incrementmwh REAL)''')
 	conn.commit()
 	conn.close()
 
 def databaseupdate():
 	conn = sqlite3.connect('solardetails.db')
         c = conn.cursor()
-     	c.execute("INSERT OR IGNORE INTO SOLARDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (enddatetime, tx_hash, block, block_time, datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi, period, total_mwh,))
+     	c.execute("INSERT OR IGNORE INTO SOLARDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (enddatetime, tx_hash, block, block_time, datalogger_id, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi, period, total_mwh, increment_mwh,))
         conn.commit()
         conn.close()
+
+def incrementmwhs():
+	# calculate an incremental MWh amount based on each users last Total MWh reading	
+	conn = sqlite3.connect('solardetails.db')
+	c = conn.cursor()
+	last_energy = c.execute("select max(totalmwh) FROM SOLARDETAILS where dataloggerid='{}'".format(datalogger_id)).fetchone()[0]
+	conn.close()
+	if last_energy == None:
+		last_energy = 0
+	increment_mwh = float("{0:.6f}".format(float(total_mwh) - last_energy))
+	if increment_mwh == float(total_mwh):
+		increment_mwh = 0
+	return increment_mwh
 
 def periodtounixtime():
 	#take the end time from the 'period' parameter and convert to unix time for use as primary key
@@ -110,6 +122,7 @@ while True:
 					waterflow = first_message_decoded['waterflow']
 					web_layer_api = first_message_decoded['Web_layer_API']
 					total_mwh = first_message_decoded['Total MWh']
+					increment_mwh = incrementmwhs()
 					peak_watt = first_message_decoded['Size_kW']
 					latitude = first_message_decoded['lat']
 					longitude = first_message_decoded['long']
