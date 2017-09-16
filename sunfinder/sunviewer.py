@@ -70,7 +70,8 @@ if xaxischooser == 'date':
 	plt.xticks(rotation=45)
 
 elif xaxischooser == 'blocks':
-	plt.figure(1)
+	plt.figure(num=1, figsize=(16, 12))
+	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=0.9, wspace=.2, hspace=.6)
 	plt.subplot(211)
 	plt.title('TOTAL Energy data from ElectriCChain')
 	plt.plot(blocknumber, energyplot, 'go')
