@@ -19,6 +19,20 @@ import time
 import sqlite3
 import sys
 
+def latitudeconverter(latitudes):
+	if latitudes[-1] == 'S':
+		latitudes = float('-'+latitudes[0:-1])
+	else:
+		latitudes = float(latitudes[0:-1])
+	return latitudes
+
+def longitudeconverter(longitudes):
+	if longitudes[-1] == 'W':
+		longitudes = float('-'+longitudes[0:-1])
+	else:
+		longitudes = float(longitudes[0:-1])
+	return longitudes
+
 userselector = raw_input('Enter a UserID or blank for all users ')
 xaxischooser = raw_input('Plot energy against "date" or "blocks"? ')
 
@@ -44,8 +58,8 @@ else:
 energyplot = [float(f[0]) for f in energyplot]
 incenergyplot = [float(f[0]) for f in incenergyplot]
 blocknumber = [int(f[0]) for f in blocknumber]
-longitudes = [float(f[0][:-1]) for f in longitudes]
-latitudes = [float(f[0][:-1]) for f in latitudes]
+longitudes = [longitudeconverter(f[0]) for f in longitudes]
+latitudes = [latitudeconverter(f[0]) for f in latitudes]
 
 if xaxischooser == 'date':
 	dates = [a[0][a[0].rfind(';')+1:] for a in datetime]
@@ -64,7 +78,7 @@ if xaxischooser == 'date':
 	plt.title('INCREMENTAL Energy data from ElectriCChain')
 	plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
 	plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
-	plt.plot(date, incenergyplot, 'ro')
+	plt.bar(date, incenergyplot, width=0.01, align='center', color='r')
 	plt.ylabel('Energy MWh')
 	plt.xlabel('Date & Time (UTC)')
 	plt.xticks(rotation=45)
@@ -95,4 +109,5 @@ earth.drawcoastlines(color='0.50', linewidth=0.25)
 earth.fillcontinents(color='0.95')
 x,y = earth(longitudes, latitudes)
 earth.plot(x,y, 'b*', markersize=3)
+plt.annotate('id {}'.format(datalogger_id[0]), xy=(x,y), xycoords='data', xytext=(2, -4), textcoords='offset points', clip_on=True)
 plt.show()
