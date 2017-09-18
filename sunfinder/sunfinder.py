@@ -165,6 +165,16 @@ while True:
 				print 'Waiting 10 seconds so as not to spam API, hit CTRL + c to stop search'
 				time.sleep(10)
 
+	except requests.exceptions.Timeout:
+		print 'CONNECTION TIMEOUT: Try again later'
+		time.sleep(10)
+		sys.exit()
+
+	except requests.exceptions.RequestException:
+		print 'CONNECTION FAILED: Check Internet connection and API Key is correct'
+		time.sleep(10)
+		sys.exit()
+
 	except KeyboardInterrupt:
 		print 'Stopping Sunfinder in 10 seconds'
 		time.sleep(10)
