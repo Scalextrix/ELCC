@@ -43,8 +43,8 @@ if userselector == '':
 	incenergyplot = c.execute('select incrementmwh FROM SOLARDETAILS').fetchall()
 	blocknumber = c.execute('select block FROM SOLARDETAILS').fetchall()
 	datetime = c.execute('select period FROM SOLARDETAILS').fetchall()
-	longitudes = c.execute('select lon FROM SOLARDETAILS').fetchall()
-	latitudes = c.execute('select lat FROM SOLARDETAILS').fetchall()
+	longitudes = c.execute('select lon FROM SOLARDETAILS GROUP BY dataloggerid').fetchall()
+	latitudes = c.execute('select lat FROM SOLARDETAILS GROUP BY dataloggerid').fetchall()
 	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS').fetchall()
 	conn.close()
 else:
