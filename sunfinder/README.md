@@ -11,9 +11,21 @@ You also need an API Key which can be requested from this page https://chainz.cr
 
 sunviewer.py is also in Python 2.7 and needs 'numpy' and 'matplotlib' to be installed
 
+For Linux
+
 > sudo apt-get install python-numpy
 
 > sudo apt-get install python-matplotlib
+
+> sudo apt-get install python-mpltoolkits.basemap
+
+For Windows
+
+> python -m pip install numpy
+
+> python -m pip install matplotlib
+
+> python -m pip install --upgrade matplotlib
 
 Otherwise all modules are standard.  To use sunfinder.py/sunviewer.py
 
