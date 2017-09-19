@@ -43,8 +43,8 @@ if userselector == '':
 	incenergyplot = c.execute('select incrementmwh FROM SOLARDETAILS').fetchall()
 	blocknumber = c.execute('select block FROM SOLARDETAILS').fetchall()
 	datetime = c.execute('select period FROM SOLARDETAILS').fetchall()
-	longitudes = c.execute('select DISTINCT lon FROM SOLARDETAILS').fetchall()
-	latitudes = c.execute('select DISTINCT lat FROM SOLARDETAILS').fetchall()
+	longitudes = c.execute('select lon FROM SOLARDETAILS').fetchall()
+	latitudes = c.execute('select lat FROM SOLARDETAILS').fetchall()
 	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS').fetchall()
 	conn.close()
 else:
@@ -62,6 +62,7 @@ incenergyplot = [float(f[0]) for f in incenergyplot]
 blocknumber = [int(f[0]) for f in blocknumber]
 longitudes = [longitudeconverter(f[0]) for f in longitudes]
 latitudes = [latitudeconverter(f[0]) for f in latitudes]
+datalogger_id = [str(f[0]) for f in datalogger_id]
 
 if xaxischooser == 'date':
 	dates = [a[0][a[0].rfind(';')+1:] for a in datetime]
