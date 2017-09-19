@@ -86,7 +86,7 @@ if xaxischooser == 'date':
 
 elif xaxischooser == 'blocks':
 	plt.figure(num=1, figsize=(10, 8))
-	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=0.9)
+	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.9, top=0.9)
 	plt.title(sysname)
 	plt.plot(blocknumber, energyplot, 'bo')
 	plt.ylabel('TOTAL Energy MWh', color='b')
