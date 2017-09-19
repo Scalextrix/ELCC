@@ -67,7 +67,7 @@ datalogger_id = [str(f[0]) for f in datalogger_id]
 if xaxischooser == 'date':
 	dates = [a[0][a[0].rfind(';')+1:] for a in datetime]
 	date = [dt.datetime.strptime(d,'%Y-%m-%d %H:%M:%S') for d in dates]
-	plt.figure(num=1, figsize=(16, 12))
+	plt.figure(num=1, figsize=(10, 8))
 	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=0.9, wspace=.2, hspace=.6)
 	plt.subplot(211)
 	plt.title('TOTAL Energy data from ElectriCChain')
@@ -87,7 +87,7 @@ if xaxischooser == 'date':
 	plt.xticks(rotation=45)
 
 elif xaxischooser == 'blocks':
-	plt.figure(num=1, figsize=(16, 12))
+	plt.figure(num=1, figsize=(10, 8))
 	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=0.9, wspace=.2, hspace=.6)
 	plt.subplot(211)
 	plt.title('TOTAL Energy data from ElectriCChain')
@@ -106,12 +106,12 @@ else:
 	time.sleep(10)
 	sys.exit()
 
-plt.figure(num=2, figsize=(10, 8))
+plt.figure(num=2, figsize=(8, 6))
 earth = Basemap(projection='mill')
 earth.drawcoastlines(color='0.50', linewidth=0.25)
-earth.fillcontinents(color='0.95')
+earth.fillcontinents(color='0.95', zorder=0)
 x, y = earth(longitudes, latitudes)
-earth.scatter(x, y)
+earth.scatter(x, y, color='r', marker='o', linewidths=0.5)
 for i, txt in enumerate(datalogger_id):
-	plt.annotate(txt, xy=(x[i], y[i]), xycoords='data', xytext=(2, -4), textcoords='offset points', clip_on=True)
+	plt.annotate(txt, xy=(x[i], y[i]), xycoords='data', xytext=(4, -4), textcoords='offset points', clip_on=True)
 plt.show()
