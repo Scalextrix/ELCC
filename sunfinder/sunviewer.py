@@ -45,6 +45,7 @@ if userselector == '':
 	datetime = c.execute('select period FROM SOLARDETAILS').fetchall()
 	longitudes = c.execute('select DISTINCT lon FROM SOLARDETAILS').fetchall()
 	latitudes = c.execute('select DISTINCT lat FROM SOLARDETAILS').fetchall()
+	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS').fetchall()
 	conn.close()
 else:
 	energyplot = c.execute('select totalmwh FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
@@ -53,6 +54,7 @@ else:
 	datetime = c.execute('select period FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
 	longitudes = c.execute('select DISTINCT lon FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
 	latitudes = c.execute('select DISTINCT lat FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
+	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
 	conn.close()
 
 energyplot = [float(f[0]) for f in energyplot]
@@ -107,7 +109,8 @@ plt.figure(num=2, figsize=(10, 8))
 earth = Basemap(projection='mill')
 earth.drawcoastlines(color='0.50', linewidth=0.25)
 earth.fillcontinents(color='0.95')
-x,y = earth(longitudes, latitudes)
-earth.plot(x,y, 'b*', markersize=3)
-plt.annotate('id {}'.format(datalogger_id[0]), xy=(x,y), xycoords='data', xytext=(2, -4), textcoords='offset points', clip_on=True)
+x, y = earth(longitudes, latitudes)
+earth.scatter(x, y)
+for i, txt in enumerate(datalogger_id):
+	plt.annotate(txt, xy=(x[i], y[i]), xycoords='data', xytext=(2, -4), textcoords='offset points', clip_on=True)
 plt.show()
