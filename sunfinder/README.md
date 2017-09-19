@@ -25,7 +25,7 @@ For Windows
 
 > python -m pip install matplotlib
 
-> python -m pip install --upgrade matplotlib
+Download the latest Basemap version for your platform from https://sourceforge.net/projects/matplotlib/files/matplotlib-toolkits/ and install as normal
 
 Otherwise all modules are standard.  To use sunfinder.py/sunviewer.py
 
