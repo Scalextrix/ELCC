@@ -46,16 +46,32 @@ def databaseupdate():
 
 def incrementmwhs():
 	# calculate an incremental MWh amount based on each users last Total MWh reading	
+	counter1=0
+	counter2=0
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
-	last_energy = c.execute("select max(totalmwh) FROM SOLARDETAILS where dataloggerid='{}'".format(datalogger_id)).fetchone()[0]
-	conn.close()
-	if last_energy == None:
-		last_energy = 0
-	increment_mwh = float("{0:.6f}".format(float(total_mwh) - last_energy))
-	if increment_mwh == float(total_mwh):
-		increment_mwh = 0
-	return increment_mwh
+	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS').fetchall()
+	datalogger_id = [str(f[0]) for f in datalogger_id]
+	id_length = len(datalogger_id)
+	while True:
+		while True:
+			max_rows = c.execute("select count(*) FROM SOLARDETAILS where dataloggerid ='{}'".format(datalogger_id[counter1])).fetchone()[0]
+			if max_rows <= 1:
+				break
+			tot_energy0 = float(c.execute("select totalmwh FROM SOLARDETAILS where dataloggerid ='{}' limit {},1".format(datalogger_id[counter1], counter2)).fetchone()[0])
+			counter2 = counter2+1
+			tot_energy1 = float(c.execute("select totalmwh FROM SOLARDETAILS where dataloggerid ='{}' limit {},1".format(datalogger_id[counter1], counter2)).fetchone()[0])
+			increment_mwh = float("{0:.6f}".format(tot_energy1 - tot_energy0))
+			c.execute("update SOLARDETAILS SET incrementmwh = {} WHERE totalmwh = {}".format(increment_mwh, tot_energy1))
+			print ('Updating Incremental Energy reading row {} for UserID {}').format(counter2, datalogger_id[counter1])
+			conn.commit()
+			if counter2 == max_rows -1:
+				break
+		counter1=counter1+1
+		if counter1 == id_length:
+			conn.close()
+			print 'Incremental Energy Update Completed'
+			break
 
 def periodtounixtime():
 	#take the end time from the 'period' parameter and convert to unix time for use as primary key
@@ -122,7 +138,7 @@ while True:
 					waterflow = first_message_decoded['waterflow']
 					web_layer_api = first_message_decoded['Web_layer_API']
 					total_mwh = first_message_decoded['Total MWh']
-					increment_mwh = incrementmwhs()
+					increment_mwh = 0
 					peak_watt = first_message_decoded['Size_kW']
 					latitude = first_message_decoded['lat']
 					longitude = first_message_decoded['long']
@@ -152,12 +168,14 @@ while True:
 			rows_added = row_count_end - row_count_start
 			print ('{} new results added to database').format(rows_added)
 			if lowest_dbase_block <= min_safe_block:
+				incrementmwhs()
 				print ('Minimum safe blockheight of {} reached: Exiting in 10 seconds').format(min_safe_block)
 				time.sleep(10)
 				sys.exit()
 
 			print ('Any more blocks to load?: {}').format(more_blocks)
 			if more_blocks != True:
+				incrementmwhs()
 				print 'Found all blocks, exiting in 10 seconds'
 				time.sleep(10)
 				sys.exit()
