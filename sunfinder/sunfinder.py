@@ -47,7 +47,7 @@ def databaseupdate():
 def incrementmwhs():
 	# calculate an incremental MWh amount based on each users last Total MWh reading	
 	counter1=0
-	counter2=row_count_start-2
+	counter2=0
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
 	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS').fetchall()
@@ -83,6 +83,7 @@ def periodtounixtime():
 min_safe_block = 1899758 #The first block where tx-message conforms to standard
 last_block = ""
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'}
+
 api_key = apikeystore()
 while True:
 	try:
