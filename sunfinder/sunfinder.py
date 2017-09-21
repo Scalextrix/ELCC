@@ -47,7 +47,7 @@ def databaseupdate():
 def incrementmwhs():
 	# calculate an incremental MWh amount based on each users last Total MWh reading	
 	counter1=0
-	counter2=0
+	counter2=row_count_start-2
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
 	datalogger_id = c.execute('select DISTINCT dataloggerid FROM SOLARDETAILS').fetchall()
