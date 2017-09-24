@@ -6,7 +6,7 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "4.2"
+__version__ = "5.0"
 
 import gc
 import getpass
@@ -71,14 +71,14 @@ def databasenamebroken():
 	sys.exit()
 
 def inverterqueryincrement():
-	""" Sets the frequency that the solar inverter is queried, value in Seconds; max 300 seconds set to stay within
+	""" Sets the frequency that the solar inverter is queried, value in Seconds; set max 300 seconds set to stay within
 	Enphase free Watt plan https://developer.enphase.com/plans """
 	system_watt = float(comm_creds['peak_watt'])
 	if system_watt <= 144:
-		inverter_query_increment = int(86400/2/system_watt)
+		inverter_query_increment = int(86400/20/system_watt)
 	else:
-		inverter_query_increment = 300
-	#inverter_query_increment = 300 # Uncomment for testing
+		inverter_query_increment = 30
+	#inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
 
 def latitudetest():
@@ -114,17 +114,15 @@ def longitudetest():
 def maintainenergylog():
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL, time REAL)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL UNIQUE, time REAL)''')
 	now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-	c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
+	c.execute("INSERT OR IGNORE INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
 	conn.commit()
-	row_count = c.execute('select max(id) FROM ENERGYLOG').fetchone()[0]
-	start_energy = float(c.execute('select totalenergy from ENERGYLOG').fetchone()[0])
-	start_time = str(c.execute('select time from ENERGYLOG').fetchone()[0])
-	end_energy = float(c.execute('select totalenergy from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
-	end_time = str(c.execute('select time from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
+	energy_list = [float(f[0]) for f in (c.execute('select totalenergy from ENERGYLOG').fetchall())]
+	time_list = [str(f[0]) for f in (c.execute('select time from ENERGYLOG').fetchall())]
 	conn.close()
-	return{'start_energy':start_energy, 'start_time':start_time, 'end_energy':end_energy, 'end_time':end_time}
+	energy_list_length = len(energy_list)
+	return {'energy_list':energy_list, 'time_list':time_list, 'energy_list_length':energy_list_length}
 
 def passphrasetest():
 	solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
@@ -156,7 +154,7 @@ def refreshenergylog():
 	now_time = str(c.execute('select time from ENERGYLOG where id={}'.format(row_count)).fetchone()[0])
 	c.execute('''DROP TABLE IF EXISTS ENERGYLOG''')
 	conn.commit()
-	c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL, time REAL)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS ENERGYLOG (id INTEGER PRIMARY KEY AUTOINCREMENT, totalenergy REAL UNIQUE, time REAL)''')
 	c.execute("INSERT INTO ENERGYLOG VALUES (NULL,?,?);", (total_energy, now_time))
 	conn.commit()
 	conn.close()
@@ -197,11 +195,40 @@ def urltestandjsonload():
 	else:
 		return json_data
 
-def writetoblockchain():
+def writetoblockchaingen():
+	time1=energy_log['time_list'][int(energy_log['energy_list_length']*0.1)]
+	energy1=energy_log['energy_list'][int(energy_log['energy_list_length']*0.1)]
+	time2=energy_log['time_list'][int(energy_log['energy_list_length']*0.2)]
+	energy2=energy_log['energy_list'][int(energy_log['energy_list_length']*0.2)]
+	time3=energy_log['time_list'][int(energy_log['energy_list_length']*0.3)]
+	energy3=energy_log['energy_list'][int(energy_log['energy_list_length']*0.3)]
+	time4=energy_log['time_list'][int(energy_log['energy_list_length']*0.4)]
+	energy4=energy_log['energy_list'][int(energy_log['energy_list_length']*0.4)]
+	time5=energy_log['time_list'][int(energy_log['energy_list_length']*0.5)]
+	energy5=energy_log['energy_list'][int(energy_log['energy_list_length']*0.5)]
+	time6=energy_log['time_list'][int(energy_log['energy_list_length']*0.6)]
+	energy6=energy_log['energy_list'][int(energy_log['energy_list_length']*0.6)]
+	time7=energy_log['time_list'][int(energy_log['energy_list_length']*0.7)]
+	energy7=energy_log['energy_list'][int(energy_log['energy_list_length']*0.7)]
+	time8=energy_log['time_list'][int(energy_log['energy_list_length']*0.8)]
+	energy8=energy_log['energy_list'][int(energy_log['energy_list_length']*0.8)]
+	time9=energy_log['time_list'][int(energy_log['energy_list_length']*0.9)]
+	energy9=energy_log['energy_list'][int(energy_log['energy_list_length']*0.9)]
+	time10=energy_log['time_list'][-1]
+	energy10=energy_log['energy_list'][-1]
+
 	try:
-		tx_message = str('{"UserID":"'+comm_creds['datalogger_id']+'","module":"'+comm_creds['solar_panel']+'","inverter":"'+comm_creds['solar_inverter']+'","data-logger":"","pyranometer":"","windsensor":"","rainsensor":"","waterflow":"","Web_layer_API":"","Size_kW":"'
-		+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']+'","Comment":"'+comm_creds['message']+'","IoT":"'
-		+comm_creds['rpi']+'","period":"{};{}","Total MWh":"{}"' .format(energy_log['start_time'], energy_log['end_time'], total_energy)+'} '+manufacturer_attribution)		 
+		tx_message = str('genv1{"UID":"'+comm_creds['datalogger_id']
+		+'","t0":"{}","MWh0":"{}"' .format(time1, energy1)
+		+',"t1":"{}","MWh1":"{}"' .format(time2, energy2)
+		+',"t2":"{}","MWh2":"{}"' .format(time3, energy3)
+		+',"t3":"{}","MWh3":"{}"' .format(time4, energy4)
+		+',"t4":"{}","MWh4":"{}"' .format(time5, energy5)
+		+',"t5":"{}","MWh5":"{}"' .format(time6, energy6)
+		+',"t6":"{}","MWh6":"{}"' .format(time7, energy7)
+		+',"t7":"{}","MWh7":"{}"' .format(time8, energy8)
+		+',"t8":"{}","MWh8":"{}"' .format(time9, energy9)
+		+',"t9":"{}","MWh9":"{}"' .format(time10, energy10)+'} '+manufacturer_attribution)
 		print("Initiating SolarCoin.....  TXID:")
 		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
@@ -213,15 +240,45 @@ def writetoblockchain():
 	except subprocess.CalledProcessError as e:
 		print e.output
 
+def writetoblockchainsys():
+	try:
+		tx_message = str('sysv1{"UID":"'+comm_creds['datalogger_id']
+		+'","module":"'+comm_creds['solar_panel']
+		+'","inverter":"'+comm_creds['solar_inverter']
+		+'","data-logger":"","pyranometer":"","Web_layer_API":"","Size_kW":"'
+		+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']
+		+'","Comment":"'+comm_creds['message']+'","IoT":"'+comm_creds['rpi']+'"} '+manufacturer_attribution)
+		print("Writing System Details to Block-Chain..... TXID:")
+		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
+		subprocess.call(['solarcoind', 'walletlock'], shell=False)
+		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
+		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', tx_message], shell=False)
+		subprocess.call(['solarcoind', 'walletlock'], shell=False)
+		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+	except subprocess.CalledProcessError as e:
+		print e.output
+
 solarcoin_passphrase = passphrasetest()
-calculateamounttosend()
+send_amount = calculateamounttosend()
 
 if os.path.isfile("APIlan.db"):
 	print "Found API LAN database"
 	dbname = "APIlan.db"
+	system_update_chooser = raw_input('Would you like to update your system information; Y/N?: ').upper()
+	if system_update_chooser == 'Y':
+		comm_creds = retrievecommoncredentials()
+		writetoblockchainsys()
+	else:
+		print 'Continuing to look for energy'
 elif os.path.isfile("APIweb.db"):
 	print "Found API web database"
 	dbname = "APIweb.db"
+	system_update_chooser = raw_input('Would you like to update your system information; Y/N?: ').upper()
+	if system_update_chooser == 'Y':
+		comm_creds = retrievecommoncredentials()
+		writetoblockchainsys()
+	else:
+		print 'Continuing to look for energy'
 else:
 	print "No database found, please complete the following credentials: "
 	datalogger_id = hashlib.sha1(uuid.uuid4().hex).hexdigest()
@@ -239,12 +296,16 @@ else:
 		user_id = ""
 		envoy_ip = raw_input ("What is the IP address of your Inverter: ")
 		databasecreate()
+		comm_creds = retrievecommoncredentials()
+		writetoblockchainsys()
 	elif lan_web == "n" or lan_web == "no" or lan_web == "web":
 		dbname="APIweb.db"
 		system_id = raw_input ("What is your Enphase System ID: ")
 		user_id = raw_input ("What is your Enphase User ID: ")
 		envoy_ip = ""
 		databasecreate()
+		comm_creds = retrievecommoncredentials()
+		writetoblockchainsys()
 	else:
 		del solarcoin_passphrase
 		gc.collect()
@@ -272,14 +333,19 @@ while True:
 		print("Inverter API call successful: Total Energy MWh: {:.6f}") .format(total_energy)
 		energy_log = maintainenergylog()
 
-		if energy_log['end_energy'] >= (energy_log['start_energy'] + energy_reporting_increment):
+		if energy_log['energy_list_length'] >= 11 and energy_log['energy_list'][-1] >= (energy_log['energy_list'][0] + energy_reporting_increment):
 			send_amount = calculateamounttosend()
-			writetoblockchain()
+			writetoblockchaingen()
 			print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
 			sleeptimer()		
 		else:
-			energy_left = (energy_reporting_increment - (energy_log['end_energy'] - energy_log['start_energy'])) * 1000					
-			print ("Waiting for another {:.3f} kWh to be generated, will check again in {:.0f} seconds (approx {:.2f} days)") .format(energy_left, inverter_query_increment, (inverter_query_increment/86400))
+			energy_left = (energy_reporting_increment - (energy_log['energy_list'][energy_log['energy_list_length']-1] - energy_log['energy_list'][0])) * 1000
+			if energy_left <= 0:
+				energy_left = 0
+			logs_left = 11 - energy_log['energy_list_length']
+			if logs_left <= 0:
+				logs_left = 0
+			print ("Waiting for {} more unique energy logs and/or {} kWh more energy, will check again in {:.0f} seconds (approx {:.2f} days)") .format(logs_left, energy_left, inverter_query_increment, (inverter_query_increment/86400))
 			sleeptimer()
 
 	except KeyboardInterrupt:
