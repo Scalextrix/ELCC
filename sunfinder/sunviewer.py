@@ -73,7 +73,7 @@ if xaxischooser == 'date':
 	date = [dt.datetime.strptime(d,'%Y-%m-%d %H:%M:%S') for d in dates]
 	plt.figure(num=1, figsize=(16, 12))
 	thismanager = plt.get_current_fig_manager()
-        img = PhotoImage(file='icon.ppm')
+        img = PhotoImage(file='elcc_logo.ppm')
         thismanager.window.tk.call('wm', 'iconphoto', thismanager.window._w, img)
         plt.subplot(121)
         plt.title(energysysname)
@@ -94,7 +94,7 @@ if xaxischooser == 'date':
 elif xaxischooser == 'blocks':
 	plt.figure(num=1, figsize=(16, 12))
 	thismanager = plt.get_current_fig_manager()
-        img = PhotoImage(file='icon.ppm')
+        img = PhotoImage(file='elcc_logo.ppm')
         thismanager.window.tk.call('wm', 'iconphoto', thismanager.window._w, img)
         plt.subplot(121)
         plt.title(energysysname)
