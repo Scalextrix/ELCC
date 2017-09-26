@@ -52,19 +52,6 @@ def sysdatabaseupdate():
         conn.commit()
         conn.close()
 
-#def incrementmwhs():
-	# calculate an incremental MWh amount based on each users last Total MWh reading	
-	#conn = sqlite3.connect('solardetails.db')
-	#c = conn.cursor()
-	#last_energy = c.execute("select max(totalmwh) FROM SOLARDETAILS where dataloggerid='{}'".format(datalogger_id)).fetchone()[0]
-	#conn.close()
-	#if last_energy == None:
-	#	last_energy = 0
-	#increment_mwh = float("{0:.6f}".format(float(total_mwh) - last_energy))
-	#if increment_mwh == float(total_mwh):
-	#	increment_mwh = 0
-	#return increment_mwh
-
 def incrementmwhs():
         # calculate an incremental MWh amount based on each users last Total MWh reading
         counter1=0
@@ -74,7 +61,9 @@ def incrementmwhs():
 	datalogger_id = c.execute('select DISTINCT dataloggerid FROM GENDETAILS').fetchall()
 	datalogger_id = [str(f[0]) for f in datalogger_id]
 	id_length = len(datalogger_id)
+	counter1=0
 	while True:
+		counter2=0
                 while True:
                         max_rows = c.execute("select count(*) FROM GENDETAILS where dataloggerid ='{}'".format(datalogger_id[counter1])).fetchone()[0]
                         if max_rows <= 1:
