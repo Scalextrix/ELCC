@@ -219,16 +219,16 @@ def writetoblockchaingen():
 
 	try:
 		tx_message = str('genv1{"UID":"'+comm_creds['datalogger_id']
-		+'","t0":"{}","MWh0":"{}"' .format(time1, energy1)
-		+',"t1":"{}","MWh1":"{}"' .format(time2, energy2)
-		+',"t2":"{}","MWh2":"{}"' .format(time3, energy3)
-		+',"t3":"{}","MWh3":"{}"' .format(time4, energy4)
-		+',"t4":"{}","MWh4":"{}"' .format(time5, energy5)
-		+',"t5":"{}","MWh5":"{}"' .format(time6, energy6)
-		+',"t6":"{}","MWh6":"{}"' .format(time7, energy7)
-		+',"t7":"{}","MWh7":"{}"' .format(time8, energy8)
-		+',"t8":"{}","MWh8":"{}"' .format(time9, energy9)
-		+',"t9":"{}","MWh9":"{}"' .format(time10, energy10)+'} '+manufacturer_attribution)
+		+'","t0":"{}","MWh0":{}' .format(time1, energy1)
+		+',"t1":"{}","MWh1":{}' .format(time2, energy2)
+		+',"t2":"{}","MWh2":{}' .format(time3, energy3)
+		+',"t3":"{}","MWh3":{}' .format(time4, energy4)
+		+',"t4":"{}","MWh4":{}' .format(time5, energy5)
+		+',"t5":"{}","MWh5":{}' .format(time6, energy6)
+		+',"t6":"{}","MWh6":{}' .format(time7, energy7)
+		+',"t7":"{}","MWh7":{}' .format(time8, energy8)
+		+',"t8":"{}","MWh8":{}' .format(time9, energy9)
+		+',"t9":"{}","MWh9":{}' .format(time10, energy10)+'}')
 		print("Initiating SolarCoin.....  TXID:")
 		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
@@ -345,7 +345,7 @@ while True:
 			logs_left = 11 - energy_log['energy_list_length']
 			if logs_left <= 0:
 				logs_left = 0
-			print ("Waiting for {} more unique energy logs and/or {} kWh more energy, will check again in {:.0f} seconds (approx {:.2f} days)") .format(logs_left, energy_left, inverter_query_increment, (inverter_query_increment/86400))
+			print ("Waiting for {} more unique energy logs and/or {:.6f} kWh more energy, will check again in {:.0f} seconds (approx {:.2f} days)") .format(logs_left, energy_left, inverter_query_increment, (inverter_query_increment/86400))
 			sleeptimer()
 
 	except KeyboardInterrupt:
