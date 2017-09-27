@@ -54,34 +54,28 @@ def sysdatabaseupdate():
 
 def incrementmwhs():
         # calculate an incremental MWh amount based on each users last Total MWh reading
-        counter1=0
-        counter2=0
-        conn = sqlite3.connect('solardetails.db')
+	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
 	datalogger_id = c.execute('select DISTINCT dataloggerid FROM GENDETAILS').fetchall()
 	datalogger_id = [str(f[0]) for f in datalogger_id]
 	id_length = len(datalogger_id)
 	counter1=0
 	while True:
-		counter2=0
-                while True:
-                        max_rows = c.execute("select count(*) FROM GENDETAILS where dataloggerid ='{}'".format(datalogger_id[counter1])).fetchone()[0]
-                        if max_rows <= 1:
-                                break
-                        tot_energy0 = float(c.execute("select totalmwh FROM GENDETAILS where dataloggerid ='{}' limit {},1".format(datalogger_id[counter1], counter2)).fetchone()[0])
-                        counter2 = counter2+1
-                        tot_energy1 = float(c.execute("select totalmwh FROM GENDETAILS where dataloggerid ='{}' limit {},1".format(datalogger_id[counter1], counter2)).fetchone()[0])
-                        increment_mwh = float("{0:.6f}".format(tot_energy1 - tot_energy0))
-                        c.execute("update GENDETAILS SET incrementmwh = {} WHERE totalmwh = {}".format(increment_mwh, tot_energy1))
-                        print ('Updating Incremental Energy reading row {} for UserID {}').format(counter2, datalogger_id[counter1])
-                        conn.commit()
-                        if counter2 == max_rows -1:
-                                break
-                counter1=counter1+1
-                if counter1 == id_length:
-                        conn.close()
-                        print 'Incremental Energy Update Completed'
-                        break
+		while True:
+			max_rows = [f[0] for f in (c.execute("select unixdatetime FROM GENDETAILS WHERE dataloggerid ='{}' AND incrementmwh=0".format(datalogger_id[counter1])).fetchall())]
+			if len(max_rows) <= 1:
+				break
+			tot_energy0 = float(c.execute("select totalmwh FROM GENDETAILS where unixdatetime={}".format(max_rows[-2])).fetchone()[0])
+			tot_energy1 = float(c.execute("select totalmwh FROM GENDETAILS where unixdatetime={}".format(max_rows[-1])).fetchone()[0])
+			increment_mwh = float("{0:.6f}".format(tot_energy1 - tot_energy0))
+			c.execute("update GENDETAILS SET incrementmwh = {} WHERE totalmwh = {}".format(increment_mwh, tot_energy1))
+			conn.commit()
+		counter1=counter1+1
+		if counter1 == id_length:
+			conn.close()
+			print 'Incremental Energy Update Completed'
+			break
+
 def periodtounixtime():
 	#take the end time from the 'period' parameter and convert to unix time for use as primary key
 	timestamp = period
@@ -89,7 +83,7 @@ def periodtounixtime():
 	enddatetime = (utc_dt - datetime(1970, 1, 1)).total_seconds()
 	return enddatetime
 
-min_safe_block = 1913858 #The first block where tx-message conforms to standard
+min_safe_block = 1916605 #The first block where tx-message conforms to standard and test data is not present
 last_block = ""
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'}
 api_key = apikeystore()
@@ -128,10 +122,16 @@ while True:
 			time.sleep(10)
 			sys.exit()
 		else:
-			counter = counter_max-1
+			counter = 0
 			while True:
                                 tx_hash = hashes [counter]
                                 block = blocks [counter]
+				if block <= min_safe_block: #Temporary addition until 100+ results from min_safe_block
+					incrementmwhs()
+					print ('New results added to database')
+					print ('Minimum safe blockheight of {} reached: Exiting in 10 seconds').format(min_safe_block)
+					time.sleep(10)
+					sys.exit()
                 		block_time = block_t [counter]
                         	first_message = str(messages [counter])
                                 if first_message[5:10] == 'genv1':
@@ -211,8 +211,8 @@ while True:
                                                 print ('Skipping load: Message in block {} does not conform').format(block)
                                                 print''
 
-				counter = counter-1
-				if counter == -1:
+				counter = counter+1
+				if counter == counter_max:
 					break
 
 			conn = sqlite3.connect('solardetails.db')
