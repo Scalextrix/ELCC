@@ -345,7 +345,7 @@ while True:
 			logs_left = 11 - energy_log['energy_list_length']
 			if logs_left <= 0:
 				logs_left = 0
-			print ("Waiting for {} more unique energy logs and/or {:.6f} kWh more energy, will check again in {:.0f} seconds (approx {:.2f} days)") .format(logs_left, energy_left, inverter_query_increment, (inverter_query_increment/86400))
+			print ("Waiting for {} more unique energy logs and/or {:.3f} kWh more energy, will check again in {:.0f} seconds (approx {:.2f} days)") .format(logs_left, energy_left, inverter_query_increment, (inverter_query_increment/86400))
 			sleeptimer()
 
 	except KeyboardInterrupt:
