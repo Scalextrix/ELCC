@@ -178,6 +178,7 @@ def retrievecommoncredentials():
 
 def sleeptimer():
 	print ("******** "+manufacturer_attribution+" ********")
+	print''
 	time.sleep(inverter_query_increment)
 
 def timestamp():
