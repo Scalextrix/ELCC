@@ -61,15 +61,20 @@ def incrementmwhs():
 	id_length = len(datalogger_id)
 	counter1=0
 	while True:
+		counter2=0
 		while True:
-			max_rows = [f[0] for f in (c.execute("select unixdatetime FROM GENDETAILS WHERE dataloggerid ='{}' AND incrementmwh=0".format(datalogger_id[counter1])).fetchall())]
-			if len(max_rows) <= 1:
+			max_rows = c.execute("select count(*) FROM GENDETAILS where dataloggerid ='{}'".format(datalogger_id[counter1])).fetchone()[0]
+			if max_rows <= 1:
 				break
-			tot_energy0 = float(c.execute("select totalmwh FROM GENDETAILS where unixdatetime={}".format(max_rows[-2])).fetchone()[0])
-			tot_energy1 = float(c.execute("select totalmwh FROM GENDETAILS where unixdatetime={}".format(max_rows[-1])).fetchone()[0])
+			tot_energy0 = float(c.execute("select totalmwh FROM GENDETAILS where dataloggerid ='{}' limit {},1".format(datalogger_id[counter1], counter2)).fetchone()[0])
+			counter2 = counter2+1
+			tot_energy1 = float(c.execute("select totalmwh FROM GENDETAILS where dataloggerid ='{}' limit {},1".format(datalogger_id[counter1], counter2)).fetchone()[0])
 			increment_mwh = float("{0:.6f}".format(tot_energy1 - tot_energy0))
 			c.execute("update GENDETAILS SET incrementmwh = {} WHERE totalmwh = {}".format(increment_mwh, tot_energy1))
 			conn.commit()
+			print ('Updating Incremental Energy reading row {} for UserID {}').format(counter2, datalogger_id[counter1])
+			if counter2 == max_rows -1:
+				break
 		counter1=counter1+1
 		if counter1 == id_length:
 			conn.close()
