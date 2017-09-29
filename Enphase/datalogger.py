@@ -21,7 +21,7 @@ import time
 import urllib2
 import uuid
 
-energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+energy_reporting_increment = 0.00001 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
@@ -78,7 +78,7 @@ def inverterqueryincrement():
 		inverter_query_increment = int(86400/20/system_watt)
 	else:
 		inverter_query_increment = 30
-	#inverter_query_increment = 30 # Uncomment for testing
+	inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
 
 def latitudetest():
@@ -316,6 +316,9 @@ else:
 
 comm_creds = retrievecommoncredentials()
 inverter_query_increment = float(inverterqueryincrement())
+print''
+print 'Your UserID is {}, you can use this later to find your own generation data'.format(comm_creds['datalogger_id'])
+print''
 while True:
 	try:
 		print ("---------- Press CTRL + c at any time to stop the Datalogger ----------")
