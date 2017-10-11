@@ -398,6 +398,9 @@ else:
 
 comm_creds = retrievecommoncredentials()
 inverter_query_increment = float(inverterqueryincrement())
+print''
+print 'Your UserID is {}, you can use this later to find your own generation data'.format(comm_creds['datalogger_id'])
+print''
 while True:
 	try:
 		print ("---------- Press CTRL + c at any time to stop the Datalogger ----------")
