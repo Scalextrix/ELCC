@@ -6,14 +6,16 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "5.0"
+__version__ = "6.0"
 
 import gc
 import getpass
 import hashlib
 import json
+from lxml import html
 import os.path
 import random
+import requests
 import subprocess
 import sqlite3
 import sys
@@ -21,9 +23,24 @@ import time
 import urllib2
 import uuid
 
-energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+energy_reporting_increment = 0.00001 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
+
+def azimuthtest():
+	while True:
+		azimuth = raw_input ("What is the Azimuth of your panels (0 degrees = Magnetic North), or 'tracked': ").lower()
+                if azimuth == 'tracked':
+			return azimuth
+		else:
+			try:
+                        	azimuth_int = int(azimuth)
+                        	if azimuth_int < 360 and azimuth_int >= 0:
+                                	return azimuth
+                        	else:
+                                	print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
+                	except ValueError:
+                        	print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
 
 def calculateamounttosend():
 	try:
@@ -55,11 +72,18 @@ def calculateamounttosend():
 		time.sleep(300)
 		return calculateamounttosend()
 
+def checksum():
+	hasher = hashlib.sha1()
+        with open('dataloggersig.py', 'rb') as afile:  
+                buf = afile.read()
+                hasher.update(buf)
+        return (hasher.hexdigest())
+
 def databasecreate():
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, envoyip TEXT, panelid TEXT, inverterid TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, pi TEXT)''')
-	c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, envoy_ip, solar_panel, solar_inverter, peak_watt, latitude, longitude, message, rpi,))
+	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, envoyip TEXT, panelid TEXT, tilt TEXT, azimuth TEXT, inverterid TEXT, datalogger TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, slrsigaddr BLOB)''')
+	c.execute("INSERT INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, envoy_ip, solar_panel, tilt, azimuth, solar_inverter, d_logger_type, peak_watt, latitude, longitude, message, solarcoin_sig_address,))
 	conn.commit()
 	conn.close()
 
@@ -78,8 +102,14 @@ def inverterqueryincrement():
 		inverter_query_increment = int(86400/20/system_watt)
 	else:
 		inverter_query_increment = 30
-	#inverter_query_increment = 30 # Uncomment for testing
+	inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
+
+def lanenvoyserialfinder():
+	page = requests.get('http://'+envoy_ip+'/home?locale=en')
+	tree = html.fromstring(page.content)
+	serial_number = str(tree.xpath('//td[2][@class="hdr_line"]/text()')[0][21:])
+	return serial_number
 
 def latitudetest():
 	while True:
@@ -110,6 +140,14 @@ def longitudetest():
 				print "*******ERROR: You must enter Longitude in a form 3.456E or 4.567W *******"
 		else:
 			print "*******ERROR: You must enter Longitude in a form 3.456E or 4.567W *******"
+
+def messagetest():
+	while True:
+		message = raw_input ("Add an optional message describing your system (max 40 characters): ")
+		if len(message) > 40:
+			print ('message too long by {} characters').format((len(message)-40))
+		else:
+			return message
 
 def maintainenergylog():
 	conn = sqlite3.connect(dbname)
@@ -167,74 +205,98 @@ def retrievecommoncredentials():
 	user_id = str(c.execute('select userid from SYSTEMDETAILS').fetchone()[0])
 	envoy_ip = str(c.execute('select envoyip from SYSTEMDETAILS').fetchone()[0])
 	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
+	tilt = str(c.execute('select tilt from SYSTEMDETAILS').fetchone()[0])
+	azimuth = str(c.execute('select azimuth from SYSTEMDETAILS').fetchone()[0])
 	solar_inverter = str(c.execute('select inverterid from SYSTEMDETAILS').fetchone()[0])
 	peak_watt = str(c.execute('select pkwatt from SYSTEMDETAILS').fetchone()[0])
 	latitude = str(c.execute('select lat from SYSTEMDETAILS').fetchone()[0])
 	longitude = str(c.execute('select lon from SYSTEMDETAILS').fetchone()[0])
 	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
-	rpi = str(c.execute('select pi from SYSTEMDETAILS').fetchone()[0])
+	d_logger_type = str(c.execute('select datalogger from SYSTEMDETAILS').fetchone()[0])
+	solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
-	return {'datalogger_id':datalogger_id, 'system_id':system_id, 'user_id':user_id, 'envoy_ip':envoy_ip, 'solar_panel':solar_panel, 'solar_inverter':solar_inverter, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'rpi':rpi}
+	return {'datalogger_id':datalogger_id, 'system_id':system_id, 'user_id':user_id, 'envoy_ip':envoy_ip, 'solar_panel':solar_panel, 'tilt':tilt, 'azimuth':azimuth, 'solar_inverter':solar_inverter, 'd_logger_type':d_logger_type, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'solarcoin_sig_address':solarcoin_sig_address}
 
 def sleeptimer():
 	print ("******** "+manufacturer_attribution+" ********")
 	print''
 	time.sleep(inverter_query_increment)
 
+def tilttest():
+	while True:
+		tilt = raw_input ("What is the Tilt of your panels from horizontal (degrees): ")
+		if tilt == 'tracked':
+			return tilt
+		else:
+			try:
+				tilt_int = int(tilt)
+				if tilt_int <= 90 and tilt_int >= 0:
+					return tilt
+				else:
+					print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
+			except ValueError:
+				print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
+
 def timestamp():
 	now_time = time.strftime("%c", time.localtime())
 	print ("*** {} Starting Datalogger Cycle  ***") .format(now_time)
 
-def urltestandjsonload():
+def urltestandjsonload(url):
 	print "Attempting Inverter API call and JSON data load"
 	try:
 		json_data = json.load(urllib2.urlopen(url, timeout=20))
 	except urllib2.URLError, e:
 		print ("******** ERROR: {} Sleeping for 5 minutes *******") .format(e)
 		time.sleep(300)
-		return urltestandjsonload()
+		return urltestandjsonload(url)
 	else:
 		return json_data
 
-def writetoblockchaingen():
-	time1=energy_log['time_list'][int(energy_log['energy_list_length']*0.1)]
-	energy1=energy_log['energy_list'][int(energy_log['energy_list_length']*0.1)]
-	time2=energy_log['time_list'][int(energy_log['energy_list_length']*0.2)]
-	energy2=energy_log['energy_list'][int(energy_log['energy_list_length']*0.2)]
-	time3=energy_log['time_list'][int(energy_log['energy_list_length']*0.3)]
-	energy3=energy_log['energy_list'][int(energy_log['energy_list_length']*0.3)]
-	time4=energy_log['time_list'][int(energy_log['energy_list_length']*0.4)]
-	energy4=energy_log['energy_list'][int(energy_log['energy_list_length']*0.4)]
-	time5=energy_log['time_list'][int(energy_log['energy_list_length']*0.5)]
-	energy5=energy_log['energy_list'][int(energy_log['energy_list_length']*0.5)]
-	time6=energy_log['time_list'][int(energy_log['energy_list_length']*0.6)]
-	energy6=energy_log['energy_list'][int(energy_log['energy_list_length']*0.6)]
-	time7=energy_log['time_list'][int(energy_log['energy_list_length']*0.7)]
-	energy7=energy_log['energy_list'][int(energy_log['energy_list_length']*0.7)]
-	time8=energy_log['time_list'][int(energy_log['energy_list_length']*0.8)]
-	energy8=energy_log['energy_list'][int(energy_log['energy_list_length']*0.8)]
-	time9=energy_log['time_list'][int(energy_log['energy_list_length']*0.9)]
-	energy9=energy_log['energy_list'][int(energy_log['energy_list_length']*0.9)]
-	time10=energy_log['time_list'][-1]
-	energy10=energy_log['energy_list'][-1]
+def webenvoyserialfinder(urltestandjsonload, system_id, api_key, user_id):
+	url = ("https://api.enphaseenergy.com/api/v2/systems/"+system_id+"/envoys?&key="+api_key+"&user_id="+user_id)
+	json_data = urltestandjsonload(url)
+	serial_number = str(json_data['envoys'][0]['serial_number'])
+	return serial_number
 
+def writetoblockchaingen():
+	time1=energy_log['time_list'][int(energy_log['energy_list_length']*0.125)]
+	energy1=energy_log['energy_list'][int(energy_log['energy_list_length']*0.125)]
+	time2=energy_log['time_list'][int(energy_log['energy_list_length']*0.25)]
+	energy2=energy_log['energy_list'][int(energy_log['energy_list_length']*0.25)]
+	time3=energy_log['time_list'][int(energy_log['energy_list_length']*0.375)]
+	energy3=energy_log['energy_list'][int(energy_log['energy_list_length']*0.375)]
+	time4=energy_log['time_list'][int(energy_log['energy_list_length']*0.5)]
+	energy4=energy_log['energy_list'][int(energy_log['energy_list_length']*0.5)]
+        time5=energy_log['time_list'][int(energy_log['energy_list_length']*0.625)]
+        energy5=energy_log['energy_list'][int(energy_log['energy_list_length']*0.625)]
+        time6=energy_log['time_list'][int(energy_log['energy_list_length']*0.75)]
+        energy6=energy_log['energy_list'][int(energy_log['energy_list_length']*0.75)]
+        time7=energy_log['time_list'][int(energy_log['energy_list_length']*0.875)]
+        energy7=energy_log['energy_list'][int(energy_log['energy_list_length']*0.875)]
+	time8=energy_log['time_list'][-1]
+	energy8=energy_log['energy_list'][-1]
+	conn = sqlite3.connect(dbname)
+	c = conn.cursor()
+	solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
+	conn.close()
 	try:
-		tx_message = str('genv1{"UID":"'+comm_creds['datalogger_id']
+		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
 		+'","t0":"{}","MWh0":{}' .format(time1, energy1)
 		+',"t1":"{}","MWh1":{}' .format(time2, energy2)
 		+',"t2":"{}","MWh2":{}' .format(time3, energy3)
 		+',"t3":"{}","MWh3":{}' .format(time4, energy4)
 		+',"t4":"{}","MWh4":{}' .format(time5, energy5)
 		+',"t5":"{}","MWh5":{}' .format(time6, energy6)
-		+',"t6":"{}","MWh6":{}' .format(time7, energy7)
-		+',"t7":"{}","MWh7":{}' .format(time8, energy8)
-		+',"t8":"{}","MWh8":{}' .format(time9, energy9)
-		+',"t9":"{}","MWh9":{}' .format(time10, energy10)+'}')
+                +',"t6":"{}","MWh6":{}' .format(time7, energy7)
+                +',"t7":"{}","MWh7":{}' .format(time8, energy8)+'}')
+		checksum_tx_message = tx_message+checksum
+                subprocess.call(['solarcoind', 'walletlock'], shell=False)
+                subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
+		sig_hash = str(subprocess.check_output(['solarcoind', 'signmessage', solarcoin_sig_address, checksum_tx_message], shell=False))
+		hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash) 
 		print("Initiating SolarCoin.....  TXID:")
 		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
-		subprocess.call(['solarcoind', 'walletlock'], shell=False)
-		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', tx_message], shell=False)
+		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', hash_tx_message], shell=False)
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
 		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 		refreshenergylog()
@@ -242,38 +304,52 @@ def writetoblockchaingen():
 		print e.output
 
 def writetoblockchainsys():
+        conn = sqlite3.connect(dbname)
+        c = conn.cursor()
+        solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
+        conn.close()
 	try:
-		tx_message = str('sysv1{"UID":"'+comm_creds['datalogger_id']
+		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
+		+'","SigAddr":"'+comm_creds['solarcoin_sig_address']
 		+'","module":"'+comm_creds['solar_panel']
+		+'","tilt":"'+comm_creds['tilt']
+		+'","azimuth":"'+comm_creds['azimuth']
 		+'","inverter":"'+comm_creds['solar_inverter']
-		+'","data-logger":"","pyranometer":"","Web_layer_API":"","Size_kW":"'
-		+comm_creds['peak_watt']+'","lat":"'+comm_creds['latitude']+'","long":"'+comm_creds['longitude']
-		+'","Comment":"'+comm_creds['message']+'","IoT":"'+comm_creds['rpi']+'"} '+manufacturer_attribution)
+		+'","data-logger":"'+comm_creds['d_logger_type']
+		+'","Size_kW":"'+comm_creds['peak_watt']
+		+'","lat":"'+comm_creds['latitude']
+		+'","long":"'+comm_creds['longitude']
+		+'","Comment":"'+comm_creds['message']
+		+'"}')
+		checksum_tx_message = tx_message+checksum
+		subprocess.call(['solarcoind', 'walletlock'], shell=False)
+                subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
+		sig_hash = str(subprocess.check_output(['solarcoind', 'signmessage', solarcoin_sig_address, checksum_tx_message], shell=False))
+		hash_tx_message = str('sysv1'+tx_message+'Sig:'+sig_hash)
 		print("Writing System Details to Block-Chain..... TXID:")
 		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
-		subprocess.call(['solarcoind', 'walletlock'], shell=False)
-		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', tx_message], shell=False)
+		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', hash_tx_message], shell=False)
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
 		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
 	except subprocess.CalledProcessError as e:
 		print e.output
 
+checksum = str(checksum())
 solarcoin_passphrase = passphrasetest()
 send_amount = calculateamounttosend()
 
-if os.path.isfile("APIlan.db"):
+if os.path.isfile("APIlansig.db"):
 	print "Found API LAN database"
-	dbname = "APIlan.db"
+	dbname = "APIlansig.db"
 	system_update_chooser = raw_input('Would you like to update your system information; Y/N?: ').upper()
 	if system_update_chooser == 'Y':
 		comm_creds = retrievecommoncredentials()
 		writetoblockchainsys()
 	else:
 		print 'Continuing to look for energy'
-elif os.path.isfile("APIweb.db"):
+elif os.path.isfile("APIwebsig.db"):
 	print "Found API web database"
-	dbname = "APIweb.db"
+	dbname = "APIwebsig.db"
 	system_update_chooser = raw_input('Would you like to update your system information; Y/N?: ').upper()
 	if system_update_chooser == 'Y':
 		comm_creds = retrievecommoncredentials()
@@ -282,28 +358,34 @@ elif os.path.isfile("APIweb.db"):
 		print 'Continuing to look for energy'
 else:
 	print "No database found, please complete the following credentials: "
-	datalogger_id = hashlib.sha1(uuid.uuid4().hex).hexdigest()
+	solarcoin_sig_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))[0:-1]
 	solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
+	tilt = tilttest()
+	azimuth = azimuthtest()
 	solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
+	d_logger_type = raw_input ("What is the Make, Model & Part Number of your data-logging device: ")
 	peak_watt = peakwatttest()
 	latitude = latitudetest()
 	longitude = longitudetest()
-	message = raw_input ("Add an optional message describing your system: ")
-	rpi = raw_input ("If you are staking on a Raspberry Pi note the Model: ")
+	message = messagetest()
 	lan_web = raw_input ("Is the Inverter on your LAN: ").lower()
 	if lan_web == "y" or lan_web == "yes" or lan_web == "lan":
-		dbname="APIlan.db"
+		dbname="APIlansig.db"
 		system_id = ""
 		user_id = ""
 		envoy_ip = raw_input ("What is the IP address of your Inverter: ")
+		envoy_serial_no = lanenvoyserialfinder()
+		datalogger_id = hashlib.sha1(envoy_serial_no).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		writetoblockchainsys()
 	elif lan_web == "n" or lan_web == "no" or lan_web == "web":
-		dbname="APIweb.db"
+		dbname="APIwebsig.db"
 		system_id = raw_input ("What is your Enphase System ID: ")
 		user_id = raw_input ("What is your Enphase User ID: ")
 		envoy_ip = ""
+                envoy_serial_no = webenvoyserialfinder(urltestandjsonload, system_id, api_key, user_id)
+                datalogger_id = hashlib.sha1(envoy_serial_no).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		writetoblockchainsys()
@@ -320,13 +402,13 @@ while True:
 	try:
 		print ("---------- Press CTRL + c at any time to stop the Datalogger ----------")
 		timestamp()
-		if os.path.isfile("APIlan.db"):
+		if os.path.isfile("APIlansig.db"):
 			url = ("http://"+comm_creds['envoy_ip']+"/api/v1/production")
-			json_data = urltestandjsonload()
+			json_data = urltestandjsonload(url)
 			total_energy = float(json_data['wattHoursLifetime'])/1000000
-		elif os.path.isfile("APIweb.db"):
+		elif os.path.isfile("APIwebsig.db"):
 			url = ("https://api.enphaseenergy.com/api/v2/systems/"+comm_creds['system_id']+"/summary?&key="+api_key+"&user_id="+comm_creds['user_id'])
-			json_data = urltestandjsonload()
+			json_data = urltestandjsonload(url)
 			total_energy = (float(json_data['energy_lifetime']) + float(json_data['energy_today'])) / 1000000
 		else:
 			databasenamebroken()
@@ -334,7 +416,7 @@ while True:
 		print("Inverter API call successful: Total Energy MWh: {:.6f}") .format(total_energy)
 		energy_log = maintainenergylog()
 
-		if energy_log['energy_list_length'] >= 11 and energy_log['energy_list'][-1] >= (energy_log['energy_list'][0] + energy_reporting_increment):
+		if energy_log['energy_list_length'] >= 9 and energy_log['energy_list'][-1] >= (energy_log['energy_list'][0] + energy_reporting_increment):
 			send_amount = calculateamounttosend()
 			writetoblockchaingen()
 			print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
@@ -343,7 +425,7 @@ while True:
 			energy_left = (energy_reporting_increment - (energy_log['energy_list'][energy_log['energy_list_length']-1] - energy_log['energy_list'][0])) * 1000
 			if energy_left <= 0:
 				energy_left = 0
-			logs_left = 11 - energy_log['energy_list_length']
+			logs_left = 9 - energy_log['energy_list_length']
 			if logs_left <= 0:
 				logs_left = 0
 			print ("Waiting for {} more unique energy logs and/or {:.3f} kWh more energy, will check again in {:.0f} seconds (approx {:.2f} days)") .format(logs_left, energy_left, inverter_query_increment, (inverter_query_increment/86400))
