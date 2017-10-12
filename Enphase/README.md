@@ -15,7 +15,7 @@ There are two Python packages to be installed 'requests' and 'lxml'
 
 > sudo apt-get install python-requests
 
-> sudo apt-get install python lxml
+> sudo apt-get install python-lxml
 
 
 To start the datalogger:
