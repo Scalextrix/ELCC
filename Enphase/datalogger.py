@@ -23,7 +23,7 @@ import time
 import urllib2
 import uuid
 
-energy_reporting_increment = 0.00001 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Powered by Enphase Energy: https://enphase.com"
 api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 
@@ -74,7 +74,7 @@ def calculateamounttosend():
 
 def checksum():
 	hasher = hashlib.sha1()
-        with open('dataloggersig.py', 'rb') as afile:  
+        with open('datalogger.py', 'rb') as afile:  
                 buf = afile.read()
                 hasher.update(buf)
         return (hasher.hexdigest())
@@ -102,7 +102,7 @@ def inverterqueryincrement():
 		inverter_query_increment = int(86400/20/system_watt)
 	else:
 		inverter_query_increment = 30
-	inverter_query_increment = 30 # Uncomment for testing
+	#inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
 
 def lanenvoyserialfinder():
