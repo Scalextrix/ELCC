@@ -57,7 +57,7 @@ else:
         longitudes = c.execute('select DISTINCT lon FROM SYSDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
         latitudes = c.execute('select DISTINCT lat FROM SYSDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
         datalogger_id = c.execute('select DISTINCT dataloggerid FROM GENDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
-        sysinfo = c.execute('select panelid, inverterid, pkwatt, lat, lon, msg, pi, pyranometer, web_layer_api, datalogger FROM SYSDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
+        sysinfo = c.execute('select panelid, tilt, azimuth, inverterid, pkwatt, lat, lon, msg, datalogger FROM SYSDETAILS where dataloggerid="{}"'.format(userselector)).fetchall()
         conn.close()
         energysysname=('Energy data from ElectriCChain for System ID {}').format(userselector)
         mapsysname=('System Location for {}').format(userselector)
