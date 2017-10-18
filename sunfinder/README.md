@@ -1,13 +1,9 @@
-The sunfinder script is designed to integrate with the SolarCoin Block Explorer at https://chainz.cryptoid.info/slr/
-and extract solar PV generation data from the SolarCoin blockchain
+The sunfinder script is designed to integrate with the SolarCoin Daemon
+and extract solar PV generation data from the SolarCoin blockchain into a local SQLite database
 
 # Dependencies
 
-sunfinder.py is written for Python 2.7 and need the 'requests' module to be installed
-
-> sudo apt-get install python-requests
-
-You also need an API Key which can be requested from this page https://chainz.cryptoid.info/api.key.dws
+sunfinder.py is written for Python 2.7 and requires the machine to have RPC access to solarcoind (SolarCoin Daemon)
 
 sunviewer.py is also in Python 2.7 and needs 'numpy' and 'matplotlib' to be installed
 
