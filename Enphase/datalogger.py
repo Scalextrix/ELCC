@@ -82,7 +82,8 @@ def checksum():
 def databasecreate():
 	conn = sqlite3.connect(dbname)
 	c = conn.cursor()
-	c.execute("DROP TABLE IF EXISTS SYSTEMDETAILS")
+	c.execute('''DROP TABLE IF EXISTS SYSTEMDETAILS''')
+	conn.commit()
 	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, envoyip TEXT, panelid TEXT, tilt TEXT, azimuth TEXT, inverterid TEXT, datalogger TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, slrsigaddr BLOB)''')
 	c.execute("INSERT OR REPLACE INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, envoy_ip, solar_panel, tilt, azimuth, solar_inverter, d_logger_type, peak_watt, latitude, longitude, message, solarcoin_sig_address,))
 	conn.commit()
@@ -240,7 +241,7 @@ def tilttest():
 
 def timestamp():
 	now_time = time.strftime("%c", time.localtime())
-	print ("*** {} Starting Datalogger Cycle  ***") .format(now_time)
+	print ("*** {} Starting Datalogger Cycle for UID {} ***") .format(now_time, comm_creds['datalogger_id'])
 
 def urltestandjsonload(url):
 	print "Attempting Inverter API call and JSON data load"
@@ -302,7 +303,6 @@ def writetoblockchaingen():
 		print e.output
 
 def writetoblockchainsys():
-        retrievecommoncredentials()
 	try:
 		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
 		+'","SigAddr":"'+comm_creds['solarcoin_sig_address']
@@ -339,6 +339,7 @@ if os.path.isfile("APIlansig.db"):
 	system_update_chooser = raw_input('Would you like to update your system information; Y/N?: ').upper()
 	if system_update_chooser == 'Y':
 		comm_creds = retrievecommoncredentials()
+		print 'Current UID: {}'.format(comm_creds['datalogger_id'])
 		solarcoin_sig_address = comm_creds['solarcoin_sig_address']
 		print 'Solar Panel: {}'.format(comm_creds['solar_panel'])
 		details_changer = raw_input ('Change Y/N?: ').lower()
@@ -405,6 +406,8 @@ if os.path.isfile("APIlansig.db"):
                 envoy_serial_no = lanenvoyserialfinder()
                 datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
+		comm_creds = retrievecommoncredentials()
+		print 'New UID: {}'.format(comm_creds['datalogger_id'])
 		writetoblockchainsys()
 	else:
 		print 'Continuing to look for energy'
@@ -414,6 +417,7 @@ elif os.path.isfile("APIwebsig.db"):
 	system_update_chooser = raw_input('Would you like to update your system information; Y/N?: ').upper()
 	if system_update_chooser == 'Y':
 		comm_creds = retrievecommoncredentials()
+		print 'Current UID: {}'.format(comm_creds['datalogger_id'])
 		solarcoin_sig_address = comm_creds['solarcoin_sig_address']
                 print 'Solar Panel: {}'.format(comm_creds['solar_panel'])
                 details_changer = raw_input ('Change Y/N?: ').lower()
@@ -485,6 +489,8 @@ elif os.path.isfile("APIwebsig.db"):
                 envoy_serial_no = webenvoyserialfinder()
                 datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
                 databasecreate()
+		comm_creds = retrievecommoncredentials()
+		print 'New UID: {}'.format(comm_creds['datalogger_id'])
 		writetoblockchainsys()
 	else:
 		print 'Continuing to look for energy'
@@ -510,6 +516,7 @@ else:
 		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
+		print 'New UID: {}'.format(comm_creds['datalogger_id'])
 		writetoblockchainsys()
 	elif lan_web == "n" or lan_web == "no" or lan_web == "web":
 		dbname="APIwebsig.db"
@@ -520,6 +527,7 @@ else:
                 datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
+		print 'New UID: {}'.format(comm_creds['datalogger_id'])
 		writetoblockchainsys()
 	else:
 		del solarcoin_passphrase
@@ -530,11 +538,10 @@ else:
 
 comm_creds = retrievecommoncredentials()
 inverter_query_increment = float(inverterqueryincrement())
-print''
-print 'Your UserID is {}, you can use this later to find your own generation data'.format(comm_creds['datalogger_id'])
-print''
+
 while True:
 	try:
+		print''
 		print ("---------- Press CTRL + c at any time to stop the Datalogger ----------")
 		timestamp()
 		if os.path.isfile("APIlansig.db"):
