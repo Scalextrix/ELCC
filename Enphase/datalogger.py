@@ -276,10 +276,7 @@ def writetoblockchaingen():
         energy7=energy_log['energy_list'][int(energy_log['energy_list_length']*0.875)]
 	time8=energy_log['time_list'][-1]
 	energy8=energy_log['energy_list'][-1]
-	conn = sqlite3.connect(dbname)
-	c = conn.cursor()
-	solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
-	conn.close()
+	retrievecommoncredentials()
 	try:
 		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
 		+'","t0":"{}","MWh0":{}' .format(time1, energy1)
@@ -293,7 +290,7 @@ def writetoblockchaingen():
 		checksum_tx_message = tx_message+checksum
                 subprocess.call(['solarcoind', 'walletlock'], shell=False)
                 subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-		sig_hash = str(subprocess.check_output(['solarcoind', 'signmessage', solarcoin_sig_address, checksum_tx_message], shell=False))
+		sig_hash = str(subprocess.check_output(['solarcoind', 'signmessage', comm_creds['solarcoin_sig_address'], checksum_tx_message], shell=False))
 		hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash) 
 		print("Initiating SolarCoin.....  TXID:")
 		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
@@ -305,10 +302,7 @@ def writetoblockchaingen():
 		print e.output
 
 def writetoblockchainsys():
-        conn = sqlite3.connect(dbname)
-        c = conn.cursor()
-        solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
-        conn.close()
+        retrievecommoncredentials()
 	try:
 		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
 		+'","SigAddr":"'+comm_creds['solarcoin_sig_address']
