@@ -303,6 +303,7 @@ def writetoblockchaingen():
 		print e.output
 
 def writetoblockchainsys():
+	retrievecommoncredentials()
 	try:
 		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
 		+'","SigAddr":"'+comm_creds['solarcoin_sig_address']
@@ -326,6 +327,8 @@ def writetoblockchainsys():
 		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', hash_tx_message], shell=False)
 		subprocess.call(['solarcoind', 'walletlock'], shell=False)
 		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
+		print 'Waiting 5 minutes to allow System Details to be written to Block'
+		time.sleep(300)
 	except subprocess.CalledProcessError as e:
 		print e.output
 
