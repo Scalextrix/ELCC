@@ -29,8 +29,10 @@ def checksum():
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
-	c.execute('''CREATE TABLE IF NOT EXISTS GENDETAILS (unixdatetime INTEGER PRIMARY KEY, dataloggerid BLOB, txhash TEXT, block INTEGER, time TEXT, period TEXT, totalmwh REAL, incrementmwh REAL)''')
-	c.execute('''CREATE TABLE IF NOT EXISTS SYSDETAILS (dataloggerid BLOB UNIQUE, panelid TEXT, inverterid TEXT, pkwatt TEXT, tilt TEXT, azimuth TEXT, lat TEXT, lon TEXT, msg TEXT, datalogger TEXT, slrsigaddr TEXT)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS GENDETAILS (unixdatetime INTEGER PRIMARY KEY, dataloggerid BLOB, txhash TEXT, block INTEGER, 
+		time TEXT, period TEXT, totalmwh REAL, incrementmwh REAL)''')
+	c.execute('''CREATE TABLE IF NOT EXISTS SYSDETAILS (dataloggerid BLOB UNIQUE, panelid TEXT, inverterid TEXT, pkwatt TEXT, tilt TEXT, 
+		azimuth TEXT, lat TEXT, lon TEXT, msg TEXT, datalogger TEXT, slrsigaddr TEXT, block_number INTEGER)''')
 	c.execute('''CREATE TABLE IF NOT EXISTS BLOCKTRACK (block_number INTEGER UNIQUE, block_hash TEXT)''')
 	conn.commit()
 	conn.close()
@@ -46,7 +48,7 @@ def databaseupdategen():
 def databaseupdatesys():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
-	c.execute("INSERT OR IGNORE INTO SYSDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, solar_panel, solar_inverter, peak_watt, tilt, azimuth, latitude, longitude, message, datalogger, solarcoin_sig_address,))
+	c.execute("INSERT OR REPLACE INTO SYSDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, solar_panel, solar_inverter, peak_watt, tilt, azimuth, latitude, longitude, message, datalogger, solarcoin_sig_address, block_number,))
 	c.execute('INSERT OR REPLACE INTO BLOCKTRACK VALUES (?,?);', (block_number, block_hash,))
 	conn.commit()
 	conn.close()
@@ -74,7 +76,7 @@ def hashcheckergen():
 	checksum_tx_message = tx_message+checksum
         return subprocess.check_output(['solarcoind', 'verifymessage', solarcoin_sig_address, hash_present, checksum_tx_message], shell=False)
 
-def hashcheckersys():
+def hashcheckersys(solarcoin_sig_address):
 	# check subsequent system datalogs against first sigaddr, except if this is the first datalog then nothing to check against
 	try:
 		conn = sqlite3.connect('solardetails.db')
@@ -127,7 +129,7 @@ def searchstarter():
 	else:
 		start_block_number = raw_input('Start search at which block?: ')
 		try:
-			int(start_block_number)
+			start_block_number = int(start_block_number)
 				
 		except:
 			print 'You must enter a whole number, please try again'
@@ -140,11 +142,15 @@ def periodtounixtime():
 	utc_dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
 	return (utc_dt - datetime(1970, 1, 1)).total_seconds()
 
+hash_check_required = raw_input('Would you like to check data-logs using digital signatures? Y/N: ').lower()
+if hash_check_required != 'y':
+	print '*** WARNING: Without digital signature checking, data-logs cannot be verified as genuine! ***'
+	time.sleep(5)
+
 checksum = str(checksum())
 
 while True:
-	print '------------ Eating Blocks for Breakfast, Lunch and Dinner -----------'
-	print ''
+	print '--------- Sunfinder: Looking for SUNSHINE in the block-chain ---------'
 	print '---------- Press CTRL + c at any time to stop the Sunfinder ----------'
 	print ''
 	try:
@@ -164,66 +170,82 @@ while True:
 				tx_hash = block_json['tx'][tx_counter]
 				transaction = subprocess.check_output(['solarcoind', 'getrawtransaction', str(tx_hash), '1'], shell=False)
 				tx_json = json.loads(transaction)
-				tx_message = str(tx_json['tx-comment'])
-				hash_present = tx_message[tx_message.find('Sig:')+4:tx_message.find('=')+1]
-				print 'Decoding Transaction {}'.format(tx_counter)
-				if tx_message[5:10] == 'sysv1':
-					try:
-						tx_message = tx_message[tx_message.find('{'):tx_message.find('}')+1]
-						tx_message_decoded = json.loads(tx_message)
-						solarcoin_sig_address = tx_message_decoded['SigAddr']
-						datalogger_id = tx_message_decoded['UID']
-						solar_panel = tx_message_decoded['module']
-						tilt = tx_message_decoded['tilt']
-						azimuth = tx_message_decoded['azimuth']
-						solar_inverter = tx_message_decoded['inverter']
-						datalogger = tx_message_decoded['data-logger']
-						peak_watt = tx_message_decoded['Size_kW']
-						latitude = tx_message_decoded['lat']
-						longitude = tx_message_decoded['long']
-						message = tx_message_decoded['Comment']
-						hash_check = hashcheckersys()
-						if hash_check[0] == 't':
-							databaseupdatesys()
+				try:
+					tx_message = str(tx_json['tx-comment'])
+					hash_present = str(tx_message[tx_message.find('Sig:')+4:tx_message.find('=')+1])
+					print 'Decoding Transaction {}'.format(tx_counter)
+					if tx_message[5:10] == 'sysv1':
+						try:
+							tx_message = tx_message[tx_message.find('{'):tx_message.find('}')+1]
+							tx_message_decoded = json.loads(tx_message)
+							solarcoin_sig_address = tx_message_decoded['SigAddr']
+							datalogger_id = tx_message_decoded['UID']
+							solar_panel = tx_message_decoded['module']
+							tilt = tx_message_decoded['tilt']
+							azimuth = tx_message_decoded['azimuth']
+							solar_inverter = tx_message_decoded['inverter']
+							datalogger = tx_message_decoded['data-logger']
+							peak_watt = tx_message_decoded['Size_kW']
+							latitude = tx_message_decoded['lat']
+							longitude = tx_message_decoded['long']
+							message = tx_message_decoded['Comment']
+							if hash_check_required == 'y':
+								hash_check = hashcheckersys(solarcoin_sig_address)
+								if hash_check[0] == 't':
+									databaseupdatesys()
+									print''
+									print ('In Block {} Added or Updated System Details for System: {}').format(block_number, datalogger_id)
+								else:
+									print''
+									print ('In Block {} System Details Hash check failed, not loading to database').format(block_number)
+							else:
+								databaseupdatesys()
+								print''
+								print ('In Block {} Added or Updated System Details for System: {}').format(block_number, datalogger_id)
+						except:
+							print ('Skipping load: Message in block {} does not conform').format(block_number)
 							print''
-							print ('In Block {} Added or Updated System Details for System: {}').format(block_number, datalogger_id)
-						else:
-							print''
-							print ('In Block {} System Details Hash check failed, not loading to database').format(block_number)
-					except:
-						print ('Skipping load: Message in block {} does not conform').format(block_number)
-						print''
 
-				elif tx_message[5:10] == 'genv1':
-					try:
-						tx_message = tx_message[tx_message.find('{'):tx_message.find('}')+1]
-						tx_message_decoded = json.loads(tx_message)
-						datalogger_id = tx_message_decoded['UID']
-						hash_check = hashcheckergen()
-						increment_mwh = 0
-						db_counter = 0
-						while True:
-							total_mwh = tx_message_decoded['MWh{}'.format(db_counter)]
-							period = tx_message_decoded['t{}'.format(db_counter)]
-							enddatetime = periodtounixtime()
-							if hash_check[0] == 't':
-								databaseupdategen()
-							db_counter = db_counter + 1
-							if db_counter == 8:
-								break
-						print ('In block: {}').format(block_number)
-						print ('UserID: {}').format(datalogger_id)
-						print ('made TX hash: {}').format(tx_hash)
-						print ('and recorded a total of: {} MWh of energy').format(total_mwh)
-						print ('Message hash check passed: {}').format(hash_check)
-						print''
-						incrementmwhs()
-					except:
-						print ('Skipping load: Message in block {} does not conform').format(block_number)
-						print''                	
+					elif tx_message[5:10] == 'genv1':
+						try:
+							tx_message = tx_message[tx_message.find('{'):tx_message.find('}')+1]
+							tx_message_decoded = json.loads(tx_message)
+							datalogger_id = tx_message_decoded['UID']
+							hash_check = hashcheckergen()
+							increment_mwh = 0
+							db_counter = 0
+							while True:
+								total_mwh = tx_message_decoded['MWh{}'.format(db_counter)]
+								period = tx_message_decoded['t{}'.format(db_counter)]
+								enddatetime = periodtounixtime()
+								if hash_check_required == 'y':
+									if hash_check[0] == 't':
+										databaseupdategen()
+									else:
+										print''
+										print ('In Block {} System Details Hash check failed, not loading to database').format(block_number)
+								else:
+									databaseupdategen()
+								db_counter = db_counter + 1
+								if db_counter == 8:
+									break
+							print ('In block: {}').format(block_number)
+							print ('UserID: {}').format(datalogger_id)
+							print ('made TX hash: {}').format(tx_hash)
+							print ('and recorded a total of: {} MWh of energy').format(total_mwh)
+							print ('Message hash check passed: {}').format(hash_check)
+							print''
+							incrementmwhs()
+						except:
+							print ('Skipping load: Message in block {} does not conform').format(block_number)
+							print''
+
+				except UnicodeEncodeError:
+					print ('Skipping load: Message in block {} cannot be decoded, Unicode error').format(block_number)
+					print''	                	
 
 				else:
-					print 'No Sytem or Generation data to load in that transaction'
+					print 'No System or Generation data to load in that transaction'
 					conn = sqlite3.connect('solardetails.db')
 					c = conn.cursor()
 					c.execute('INSERT OR REPLACE INTO BLOCKTRACK VALUES (?,?);', (block_number, block_hash,)) 
@@ -239,16 +261,20 @@ while True:
 				c = conn.cursor()
 				end_block_number = int(c.execute('select max(block_number) from BLOCKTRACK').fetchone()[0])
 				conn.close()
-				print 'Found {} new blocks'.format(end_block_number-start_block_number)
-				
+				print 'Found {} new blocks'.format(end_block_number-start_block_number)				
 				break
-		print '---- Sleeping for 10 minutes, then looking for more blocks to eat! ---'
-		print ''
+		print '------ Sleeping for 10 minutes, then looking for more SUNSHINE! ------'
 		print '---------- Press CTRL + c at any time to stop the Sunfinder ----------'
 		print ''
-		time.sleep(60)
+		time.sleep(600)
 
 	except KeyboardInterrupt:
+		conn = sqlite3.connect('solardetails.db')
+		c = conn.cursor()
+		end_block_number = int(c.execute('select max(block_number) from BLOCKTRACK').fetchone()[0])
+		conn.close()
+		print''
+		print 'Found {} new blocks'.format(end_block_number-start_block_number)
 		print("Stopping Sunfinder in 10 seconds")
 		time.sleep(10)
 		sys.exit()

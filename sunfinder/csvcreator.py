@@ -18,7 +18,7 @@ conn.close()
 
 with open('systemdetails.csv', 'wb') as f:
 	writer = csv.writer(f)
-	writer.writerow(['UserID', 'Solar_Panel', 'Inverter', 'PeakWatt', 'Deg_Tilt', 'Deg_Azimuth', 'Latitude', 'Longitude', 'Comment', 'Data-logger', 'SLR_Signature_Address'])
+	writer.writerow(['UserID', 'Solar_Panel', 'Inverter', 'PeakWatt', 'Deg_Tilt', 'Deg_Azimuth', 'Latitude', 'Longitude', 'Comment', 'Data-logger', 'SLR_Signature_Address', 'Block_Number'])
 	writer.writerows(export_system_data)
 	f.close()
 
