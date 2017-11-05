@@ -480,20 +480,15 @@ elif os.path.isfile("APIwebsig.db"):
                         message = messagetest()
                 else:
                         message = comm_creds['message']
-                print 'Enphase System ID: {}'.format(comm_creds['system_id'])
+                print 'System ID: {}'.format(comm_creds['system_id'])
                 details_changer = raw_input ('Change Y/N?: ').lower()
                 if details_changer == 'y':
                         system_id = raw_input ("What is your Enphase System ID: ")
                 else:
                         system_id = comm_creds['system_id']
-                print 'Enphase User ID: {}'.format(comm_creds['user_id'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        user_id = raw_input ("What is your Enphase User ID: ")
-                else:
-                        user_id = comm_creds['user_id']
+                user_id = ""
 		envoy_ip = ""
-                envoy_serial_no = webenvoyserialfinder()
+                envoy_serial_no = raw_input ("What is your GoodWe Inverter Serial Number: ")
                 datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
                 databasecreate()
 		comm_creds = retrievecommoncredentials()
@@ -557,6 +552,7 @@ while True:
 			total_energy = float(json_data['wattHoursLifetime'])/1000000
 		elif os.path.isfile("APIwebsig.db"):
 			url = ("http://goodwe-power.com/Mobile/GetMyPowerStationById?stationID="+comm_creds['system_id'])
+			print url
 			json_data = urltestandjsonload(url)
 			total_energy = (float(json_data['etotal'][0:-3])) / 1000
 		else:
