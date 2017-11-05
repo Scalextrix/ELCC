@@ -251,6 +251,10 @@ def urltestandjsonload(url):
 		print ("******** ERROR: {} Sleeping for 5 minutes *******") .format(e)
 		time.sleep(300)
 		return urltestandjsonload(url)
+	except socket.timeout:
+		print "******** ERROR: Sleeping for 5 minutes then trying Inverter again *******"
+		time.sleep(300)
+		return urltestandjsonload(url)
 	else:
 		return json_data
 
@@ -579,6 +583,7 @@ while True:
 	except KeyboardInterrupt:
        		del solarcoin_passphrase
        		gc.collect()
+		print''
 		print("Stopping Datalogger in 10 seconds")
 		time.sleep(10)
 		sys.exit()
