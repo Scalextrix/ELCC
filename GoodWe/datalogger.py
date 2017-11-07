@@ -16,6 +16,7 @@ from lxml import html
 import os.path
 import random
 import requests
+import socket
 import subprocess
 import sqlite3
 import sys
@@ -552,7 +553,6 @@ while True:
 			total_energy = float(json_data['wattHoursLifetime'])/1000000
 		elif os.path.isfile("APIwebsig.db"):
 			url = ("http://goodwe-power.com/Mobile/GetMyPowerStationById?stationID="+comm_creds['system_id'])
-			print url
 			json_data = urltestandjsonload(url)
 			total_energy = (float(json_data['etotal'][0:-3])) / 1000
 		else:
