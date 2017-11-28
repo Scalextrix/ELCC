@@ -363,6 +363,7 @@ else:
 	time.sleep(10)
 	sys.exit()
 
+instruct_wallet('settxfee', [0.0001])
 checksum = str(checksum())
 solarcoin_passphrase = passphrasetest()
 send_amount = calculateamounttosend()
