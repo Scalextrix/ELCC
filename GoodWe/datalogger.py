@@ -6,7 +6,7 @@ instructs the solarcoin daemon to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "6.0"
+__version__ = "6.1"
 
 import gc
 import getpass
@@ -17,7 +17,6 @@ import os.path
 import random
 import requests
 import socket
-import subprocess
 import sqlite3
 import sys
 import time
@@ -44,34 +43,28 @@ def azimuthtest():
                         	print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
 
 def calculateamounttosend():
-	try:
-		utxos = json.loads(subprocess.check_output(['solarcoind', 'listunspent'], shell=False))
-		for u in utxos:
-       			amounts = [u['amount'] for u in utxos]
-		wallet_balance = float(subprocess.check_output(['solarcoind', 'getbalance'], shell=False))
-		if wallet_balance < 0.0005:
-			print ("*******ERROR: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet *******") .format(wallet_balance)
-			time.sleep(10)
-			sys.exit()
-		elif wallet_balance >= 0.1:
-			small_amounts = [i for i in amounts if i >=0.01 and i <=0.1]
-			if len(small_amounts) == 0:
-				tiny_amounts = [i for i in amounts if i <0.01]
-				send_amount = str(sum(tiny_amounts))
-				if send_amount < 0.01:
-					send_amount = str(sum(tiny_amounts) + 0.01)
-			else:
-				send_amount = str(float(str(random.sample(small_amounts, 1))[1:-1])-0.0001)
-			print ('Based on wallet balance of {} amount to send to self set to any amount between 0.01 & 0.1 SLR') .format(wallet_balance)
+	utxos = instruct_wallet('listunspent', [])['result']		
+	for u in utxos:
+		amounts = [u['amount'] for u in utxos]
+	wallet_balance = float(instruct_wallet('getbalance', [])['result'])		
+	if wallet_balance < 0.0005:
+		print ("*******ERROR: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet *******") .format(wallet_balance)
+		time.sleep(10)
+		sys.exit()
+	elif wallet_balance >= 0.1:
+		small_amounts = [i for i in amounts if i >=0.01 and i <=0.1]
+		if len(small_amounts) == 0:
+			tiny_amounts = [i for i in amounts if i <0.01]
+			send_amount = float(sum(tiny_amounts))
+			if send_amount < 0.01:
+				send_amount = float(sum(tiny_amounts) + 0.01)
 		else:
-			send_amount = str(max([i for i in amounts]))
-			print ("*******WARNING: low wallet balance of {}SLR, low send amount may result in higher TX fees*******") .format(wallet_balance)
-		return send_amount
-	except subprocess.CalledProcessError:
-		print ("SolarCoin daemon offline, attempting restart, then sleeping for 5 minutes")
-		subprocess.call(['solarcoind'], shell=False)
-		time.sleep(300)
-		return calculateamounttosend()
+			send_amount = float(str(random.sample(small_amounts, 1))[1:-1])-0.0001
+		print ('Based on wallet balance of {} amount to send to self set to any amount between 0.01 & 0.1 SLR') .format(wallet_balance)
+	else:
+		send_amount = float(max([i for i in amounts]))
+		print ("*******WARNING: low wallet balance of {}SLR, low send amount may result in higher TX fees*******") .format(wallet_balance)
+	return send_amount
 
 def checksum():
 	hasher = hashlib.sha1()
@@ -96,6 +89,16 @@ def databasenamebroken():
 	print "*******ERROR: Exiting in 10 seconds: Database name corrupted, delete *.db file and try again *******"
 	time.sleep(10)
 	sys.exit()
+
+def instruct_wallet(method, params):
+	url = "http://127.0.0.1:18181/"
+	payload = json.dumps({"method": method, "params": params})
+	headers = {'content-type': "application/json", 'cache-control': "no-cache"}
+	try:
+		response = requests.request("POST", url, data=payload, headers=headers, auth=(rpc_user, rpc_pass))
+		return json.loads(response.text)
+	except requests.exceptions.RequestException as e:
+		print e
 
 def inverterqueryincrement():
 	""" Sets the frequency that the solar inverter is queried, value in Seconds; set max 300 seconds set to stay within
@@ -168,13 +171,12 @@ def maintainenergylog():
 def passphrasetest():
 	solarcoin_passphrase = getpass.getpass(prompt="What is your SolarCoin Wallet Passphrase: ")
 	print "Testing SolarCoin Wallet Passphrase, locking wallet..."
-	try:
-		subprocess.check_output(['solarcoind', 'walletlock'], shell=False)
-		subprocess.check_output(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-	except subprocess.CalledProcessError:
+	instruct_wallet('walletlock', [])
+	answer = instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999, True])
+	if answer['error'] != None:
 		print "*******ERROR: Exiting in 10 seconds, SOLARCOIN WALLET NOT STAKING *******"
 		time.sleep(10)
-		sys.exit()
+		sys.exit()	
 	else:
                 print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
                 return solarcoin_passphrase
@@ -249,11 +251,15 @@ def urltestandjsonload(url):
 	try:
 		json_data = json.load(urllib2.urlopen(url, timeout=20))
 	except urllib2.URLError, e:
-		print ("******** ERROR: {} Sleeping for 5 minutes *******") .format(e)
+		print ("******** URL ERROR: {} Sleeping for 5 minutes *******") .format(e)
 		time.sleep(300)
 		return urltestandjsonload(url)
 	except socket.timeout:
-		print "******** ERROR: Sleeping for 5 minutes *******"
+		print "******** SOCKET TIMEOUT: Sleeping for 5 minutes *******"
+		time.sleep(300)
+		return urltestandjsonload(url)
+	except socket.error:
+		print "******** SOCKET ERROR: Sleeping for 5 minutes then trying Inverter again *******"
 		time.sleep(300)
 		return urltestandjsonload(url)
 	else:
@@ -283,59 +289,79 @@ def writetoblockchaingen():
 	time8=energy_log['time_list'][-1]
 	energy8=energy_log['energy_list'][-1]
 	retrievecommoncredentials()
-	try:
-		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
-		+'","t0":"{}","MWh0":{}' .format(time1, energy1)
-		+',"t1":"{}","MWh1":{}' .format(time2, energy2)
-		+',"t2":"{}","MWh2":{}' .format(time3, energy3)
-		+',"t3":"{}","MWh3":{}' .format(time4, energy4)
-		+',"t4":"{}","MWh4":{}' .format(time5, energy5)
-		+',"t5":"{}","MWh5":{}' .format(time6, energy6)
-                +',"t6":"{}","MWh6":{}' .format(time7, energy7)
-                +',"t7":"{}","MWh7":{}' .format(time8, energy8)+'}')
-		checksum_tx_message = tx_message+checksum
-                subprocess.call(['solarcoind', 'walletlock'], shell=False)
-                subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-		sig_hash = str(subprocess.check_output(['solarcoind', 'signmessage', comm_creds['solarcoin_sig_address'], checksum_tx_message], shell=False))
-		hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash) 
-		print("Initiating SolarCoin.....  TXID:")
-		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
-		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', hash_tx_message], shell=False)
-		subprocess.call(['solarcoind', 'walletlock'], shell=False)
-		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-		refreshenergylog()
-	except subprocess.CalledProcessError as e:
-		print e.output
+
+	tx_message = str('{"UID":"'+comm_creds['datalogger_id']
+	+'","t0":"{}","MWh0":{}' .format(time1, energy1)
+	+',"t1":"{}","MWh1":{}' .format(time2, energy2)
+	+',"t2":"{}","MWh2":{}' .format(time3, energy3)
+	+',"t3":"{}","MWh3":{}' .format(time4, energy4)
+	+',"t4":"{}","MWh4":{}' .format(time5, energy5)
+	+',"t5":"{}","MWh5":{}' .format(time6, energy6)
+	+',"t6":"{}","MWh6":{}' .format(time7, energy7)
+	+',"t7":"{}","MWh7":{}' .format(time8, energy8)+'}')
+	checksum_tx_message = tx_message+checksum
+	instruct_wallet('walletlock', [])
+	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999])
+	sig_hash = str(instruct_wallet('signmessage', [comm_creds['solarcoin_sig_address'], checksum_tx_message])['result'])
+	hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash) 
+	print("Initiating SolarCoin.....  TXID:")
+	solarcoin_address = str(instruct_wallet('getnewaddress', [])['result'])
+	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, '', '', hash_tx_message])['result']
+	instruct_wallet('walletlock', [])
+	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999, True])
+	refreshenergylog()	
 
 def writetoblockchainsys():
 	retrievecommoncredentials()
-	try:
-		tx_message = str('{"UID":"'+comm_creds['datalogger_id']
-		+'","SigAddr":"'+comm_creds['solarcoin_sig_address']
-		+'","module":"'+comm_creds['solar_panel']
-		+'","tilt":"'+comm_creds['tilt']
-		+'","azimuth":"'+comm_creds['azimuth']
-		+'","inverter":"'+comm_creds['solar_inverter']
-		+'","data-logger":"'+comm_creds['d_logger_type']
-		+'","Size_kW":"'+comm_creds['peak_watt']
-		+'","lat":"'+comm_creds['latitude']
-		+'","long":"'+comm_creds['longitude']
-		+'","Comment":"'+comm_creds['message']
-		+'"}')
-		checksum_tx_message = tx_message+checksum
-		subprocess.call(['solarcoind', 'walletlock'], shell=False)
-                subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999'], shell=False)
-		sig_hash = str(subprocess.check_output(['solarcoind', 'signmessage', solarcoin_sig_address, checksum_tx_message], shell=False))
-		hash_tx_message = str('sysv1'+tx_message+'Sig:'+sig_hash)
-		print("Writing System Details to Block-Chain..... TXID:")
-		solarcoin_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))
-		subprocess.call(['solarcoind', 'sendtoaddress', solarcoin_address, send_amount, '', '', hash_tx_message], shell=False)
-		subprocess.call(['solarcoind', 'walletlock'], shell=False)
-		subprocess.call(['solarcoind', 'walletpassphrase', solarcoin_passphrase, '9999999', 'true'], shell=False)
-		print 'Waiting 5 minutes to allow System Details to be written to Block'
-		time.sleep(300)
-	except subprocess.CalledProcessError as e:
-		print e.output
+	tx_message = str('{"UID":"'+comm_creds['datalogger_id']
+	+'","SigAddr":"'+comm_creds['solarcoin_sig_address']
+	+'","module":"'+comm_creds['solar_panel']
+	+'","tilt":"'+comm_creds['tilt']
+	+'","azimuth":"'+comm_creds['azimuth']
+	+'","inverter":"'+comm_creds['solar_inverter']
+	+'","data-logger":"'+comm_creds['d_logger_type']
+	+'","Size_kW":"'+comm_creds['peak_watt']
+	+'","lat":"'+comm_creds['latitude']
+	+'","long":"'+comm_creds['longitude']
+	+'","Comment":"'+comm_creds['message']
+	+'"}')
+	checksum_tx_message = tx_message+checksum
+	instruct_wallet('walletlock', [])
+	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999])
+	sig_hash = str(instruct_wallet('signmessage', [solarcoin_sig_address, checksum_tx_message])['result'])
+	hash_tx_message = str('sysv1'+tx_message+'Sig:'+sig_hash)
+	print("Writing System Details to Block-Chain..... TXID:")
+	solarcoin_address = str(instruct_wallet('getnewaddress', [])['result'])
+	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, '', '', hash_tx_message])['result']
+	instruct_wallet('walletlock', [])
+	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999, True])
+	print 'Waiting 5 minutes to allow System Details to be written to Block'
+	time.sleep(300)
+
+if os.name == 'nt':
+	user_account = getpass.getuser()
+	f = open('C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account), 'rb')
+	for line in f:
+		line = line.rstrip()
+		if line[0:7] == 'rpcuser':
+			rpc_user = line[line.find('=')+1:]
+		if line[0:11] == 'rpcpassword':
+			rpc_pass = line[line.find('=')+1:]
+	f.close()
+elif os.name == 'posix':
+	homedir = os.environ['HOME']
+	f = open(homedir+'/.solarcoin/solarcoin.conf', 'r')
+	for line in f:
+		line = line.rstrip()
+		if line[0:7] == 'rpcuser':
+			rpc_user = line[line.find('=')+1:]
+		if line[0:11] == 'rpcpassword':
+			rpc_pass = line[line.find('=')+1:]
+	f.close()
+else:
+	print 'SolarCoin.conf not found, please ensure it is in the default location'
+	time.sleep(10)
+	sys.exit()
 
 checksum = str(checksum())
 solarcoin_passphrase = passphrasetest()
@@ -499,7 +525,7 @@ elif os.path.isfile("APIwebsig.db"):
 		print 'Continuing to look for energy'
 else:
 	print "No database found, please complete the following credentials: "
-	solarcoin_sig_address = str(subprocess.check_output(['solarcoind', 'getnewaddress'], shell=False))[0:-1]
+	solarcoin_sig_address = str(instruct_wallet('getnewaddress', [])['result'])	
 	solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
 	tilt = tilttest()
 	azimuth = azimuthtest()
@@ -579,6 +605,7 @@ while True:
 	except KeyboardInterrupt:
        		del solarcoin_passphrase
        		gc.collect()
+		print ''
 		print("Stopping Datalogger in 10 seconds")
 		time.sleep(10)
 		sys.exit()
