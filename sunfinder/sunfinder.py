@@ -6,14 +6,15 @@ loads to database"""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "3.0"
+__version__ = "3.1"
 
 from datetime import datetime
+import getpass
 import hashlib
 import json
 import os.path
+import requests
 import sqlite3
-import subprocess
 import sys
 import time
 
@@ -55,7 +56,7 @@ def databaseupdatesys():
 
 def forkfinder(start_block_number):
 	# checks if the blockhash in the database matches the blockchain, if not recursively looks back 10 blocks until match found then reloads
-	chain_block_hash = str(subprocess.check_output(['solarcoind', 'getblockhash', str(start_block_number)], shell=False))
+	chain_block_hash = str(instruct_wallet('getblockhash', [start_block_number])['result'])
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
 	dbase_block_hash = str(c.execute('select block_hash from BLOCKTRACK where block_number = {}'.format(start_block_number)).fetchone()[0])
@@ -74,7 +75,7 @@ def hashcheckergen():
 	solarcoin_sig_address = str(c.execute("select slrsigaddr FROM SYSDETAILS where dataloggerid ='{}'".format(datalogger_id)).fetchone()[0])
 	conn.close()
 	checksum_tx_message = tx_message+checksum
-        return subprocess.check_output(['solarcoind', 'verifymessage', solarcoin_sig_address, hash_present, checksum_tx_message], shell=False)
+        return instruct_wallet('verifymessage', [solarcoin_sig_address, hash_present, checksum_tx_message])['result']
 
 def hashcheckersys(solarcoin_sig_address):
 	# check subsequent system datalogs against first sigaddr, except if this is the first datalog then nothing to check against
@@ -86,7 +87,20 @@ def hashcheckersys(solarcoin_sig_address):
 	except:
 		print 'NOTE: Signing Address not found for System: {}'.format(datalogger_id)	
 	checksum_tx_message = tx_message+checksum
-	return subprocess.check_output(['solarcoind', 'verifymessage', solarcoin_sig_address, hash_present, checksum_tx_message], shell=False)
+	return instruct_wallet('verifymessage', [solarcoin_sig_address, hash_present, checksum_tx_message])['result']
+
+def instruct_wallet(method, params):
+	url = "http://127.0.0.1:18181/"
+	payload = json.dumps({"method": method, "params": params})
+	headers = {'content-type': "application/json", 'cache-control': "no-cache"}
+	try:
+		response = requests.request("POST", url, data=payload, headers=headers, auth=(rpc_user, rpc_pass))
+		return json.loads(response.text)
+	except requests.exceptions.RequestException as e:
+		print e
+		print 'Backing off for 10 seconds'
+		time.sleep(10)
+		return instruct_wallet(method, params)
 
 def incrementmwhs():
 	# calculate an incremental MWh amount based on each users last Total MWh reading
@@ -142,6 +156,31 @@ def periodtounixtime():
 	utc_dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
 	return (utc_dt - datetime(1970, 1, 1)).total_seconds()
 
+if os.name == 'nt':
+	user_account = getpass.getuser()
+	f = open('C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account), 'rb')
+	for line in f:
+		line = line.rstrip()
+		if line[0:7] == 'rpcuser':
+			rpc_user = line[line.find('=')+1:]
+		if line[0:11] == 'rpcpassword':
+			rpc_pass = line[line.find('=')+1:]
+	f.close()
+elif os.name == 'posix':
+	homedir = os.environ['HOME']
+	f = open(homedir+'/.solarcoin/solarcoin.conf', 'r')
+	for line in f:
+		line = line.rstrip()
+		if line[0:7] == 'rpcuser':
+			rpc_user = line[line.find('=')+1:]
+		if line[0:11] == 'rpcpassword':
+			rpc_pass = line[line.find('=')+1:]
+	f.close()
+else:
+	print 'SolarCoin.conf not found, please ensure it is in the default location'
+	time.sleep(10)
+	sys.exit()
+
 hash_check_required = raw_input('Would you like to check data-logs using digital signatures? Y/N: ').lower()
 if hash_check_required != 'y':
 	print '*** WARNING: Without digital signature checking, data-logs cannot be verified as genuine! ***'
@@ -154,22 +193,20 @@ while True:
 	print '---------- Press CTRL + c at any time to stop the Sunfinder ----------'
 	print ''
 	try:
-		top_block = int(subprocess.check_output(['solarcoind', 'getblockcount'], shell=False))
+		top_block = int(instruct_wallet('getblockcount', [])['result'])
 		start_block_number = searchstarter()	
 		block_number = int(start_block_number)
 		databasecreate()
 		while True:
-			block_hash = subprocess.check_output(['solarcoind', 'getblockhash', str(block_number)], shell=False)
-			tx_details = subprocess.check_output(['solarcoind', 'getblock', (block_hash)], shell=False)
-			block_json = json.loads(tx_details)
+			block_hash = instruct_wallet('getblockhash', [block_number])['result']
+			block_json = instruct_wallet('getblock', [block_hash])['result']
 			block_time = block_json['time']
 	        	tx_length = len(block_json['tx'])
 	        	print 'Number of transactions in block {} = {}'.format(block_number, tx_length-1)
 	        	tx_counter = 1
 			while True:
 				tx_hash = block_json['tx'][tx_counter]
-				transaction = subprocess.check_output(['solarcoind', 'getrawtransaction', str(tx_hash), '1'], shell=False)
-				tx_json = json.loads(transaction)
+				tx_json = instruct_wallet('getrawtransaction', [tx_hash, 1])['result']
 				try:
 					tx_message = str(tx_json['tx-comment'])
 					hash_present = str(tx_message[tx_message.find('Sig:')+4:tx_message.find('=')+1])
