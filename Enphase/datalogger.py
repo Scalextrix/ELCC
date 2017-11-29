@@ -30,17 +30,17 @@ api_key = "6ba121cb00bcdafe7035d57fe623cf1c&usf1c&usf1c"
 def azimuthtest():
 	while True:
 		azimuth = raw_input ("What is the Azimuth of your panels (0 degrees = Magnetic North), or 'tracked': ").lower()
-                if azimuth == 'tracked':
+		if azimuth == 'tracked':
 			return azimuth
 		else:
 			try:
-                        	azimuth_int = int(azimuth)
-                        	if azimuth_int < 360 and azimuth_int >= 0:
-                                	return azimuth
-                        	else:
-                                	print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
-                	except ValueError:
-                        	print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
+				azimuth_int = int(azimuth)
+				if azimuth_int < 360 and azimuth_int >= 0:
+					return azimuth
+				else:
+					print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
+			except ValueError:
+				print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
 
 def calculateamounttosend():
 	utxos = instruct_wallet('listunspent', [])['result']
@@ -68,10 +68,10 @@ def calculateamounttosend():
 
 def checksum():
 	hasher = hashlib.sha1()
-        with open('datalogger.py', 'rb') as afile:  
-                buf = afile.read()
-                hasher.update(buf)
-        return (hasher.hexdigest())
+	with open('datalogger.py', 'rb') as afile:  
+		buf = afile.read()
+		hasher.update(buf)
+	return (hasher.hexdigest())
 
 def databasecreate():
 	conn = sqlite3.connect(dbname)
@@ -178,8 +178,8 @@ def passphrasetest():
 		time.sleep(10)
 		sys.exit()
 	else:
-                print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
-                return solarcoin_passphrase
+		print "SolarCoin Wallet Passphrase correct, wallet unlocked for staking"
+		return solarcoin_passphrase
 
 def peakwatttest():
 	while True:
@@ -237,8 +237,8 @@ def tilttest():
 				tilt_int = int(tilt)
 				if tilt_int <= 90 and tilt_int >= 0:
 					return tilt
-				else:
-					print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
+			else:
+				print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
 			except ValueError:
 				print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
 
@@ -280,12 +280,12 @@ def writetoblockchaingen():
 	energy3=energy_log['energy_list'][int(energy_log['energy_list_length']*0.375)]
 	time4=energy_log['time_list'][int(energy_log['energy_list_length']*0.5)]
 	energy4=energy_log['energy_list'][int(energy_log['energy_list_length']*0.5)]
-        time5=energy_log['time_list'][int(energy_log['energy_list_length']*0.625)]
-        energy5=energy_log['energy_list'][int(energy_log['energy_list_length']*0.625)]
-        time6=energy_log['time_list'][int(energy_log['energy_list_length']*0.75)]
-        energy6=energy_log['energy_list'][int(energy_log['energy_list_length']*0.75)]
-        time7=energy_log['time_list'][int(energy_log['energy_list_length']*0.875)]
-        energy7=energy_log['energy_list'][int(energy_log['energy_list_length']*0.875)]
+	time5=energy_log['time_list'][int(energy_log['energy_list_length']*0.625)]
+	energy5=energy_log['energy_list'][int(energy_log['energy_list_length']*0.625)]
+	time6=energy_log['time_list'][int(energy_log['energy_list_length']*0.75)]
+	energy6=energy_log['energy_list'][int(energy_log['energy_list_length']*0.75)]
+	time7=energy_log['time_list'][int(energy_log['energy_list_length']*0.875)]
+	energy7=energy_log['energy_list'][int(energy_log['energy_list_length']*0.875)]
 	time8=energy_log['time_list'][-1]
 	energy8=energy_log['energy_list'][-1]
 	retrievecommoncredentials()
@@ -359,7 +359,7 @@ elif os.name == 'posix':
 			rpc_pass = line[line.find('=')+1:]
 	f.close()
 else:
-        print 'SolarCoin.conf not found, please ensure it is in the default location'
+	print 'SolarCoin.conf not found, please ensure it is in the default location'
 	time.sleep(10)
 	sys.exit()
 
@@ -384,62 +384,62 @@ if os.path.isfile("APIlansig.db"):
 			solar_panel = comm_creds['solar_panel']
 		print 'Tilt: {}'.format(comm_creds['tilt'])
 		details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
+		if details_changer == 'y':
 			tilt = tilttest()
 		else:
 			tilt = comm_creds['tilt']
 		print 'Azimuth: {}'.format(comm_creds['azimuth'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
 			azimuth = azimuthtest()
 		else:
 			azimuth = comm_creds['azimuth']
 		print 'Inverter: {}'.format(comm_creds['solar_inverter'])
 		details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
+		if details_changer == 'y':
 			solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
 		else:
 			solar_inverter = comm_creds['solar_inverter']
 		print 'Data-logger: {}'.format(comm_creds['d_logger_type'])
 		details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
+		if details_changer == 'y':
 			d_logger_type = raw_input ("What is the Make, Model & Part Number of your data-logging device: ")
 		else:
 			d_logger_type = comm_creds['d_logger_type']
 		print 'Peak Watt: {}'.format(comm_creds['peak_watt'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
 			peak_watt = peakwatttest()
 		else:
 			peak_watt = comm_creds['peak_watt']
 		print 'Latitude: {}'.format(comm_creds['latitude'])
 		details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
+		if details_changer == 'y':
 			latitude = latitudetest()
 		else:
 			latitude = comm_creds['latitude']
-                print 'Longitude: {}'.format(comm_creds['longitude'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        longitude = longitudetest()
-                else:
-                        longitude = comm_creds['longitude']
-                print 'Comment: {}'.format(comm_creds['message'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        message = messagetest()
-                else:
-                        message = comm_creds['message']
-                print 'IP Address: {}'.format(comm_creds['envoy_ip'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        envoy_ip = raw_input ("What is the IP address of your Inverter: ")
-                else:
-                        envoy_ip = comm_creds['envoy_ip']
+		print 'Longitude: {}'.format(comm_creds['longitude'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			longitude = longitudetest()
+		else:
+			longitude = comm_creds['longitude']
+		print 'Comment: {}'.format(comm_creds['message'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			message = messagetest()
+		else:
+			message = comm_creds['message']
+		print 'IP Address: {}'.format(comm_creds['envoy_ip'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			envoy_ip = raw_input ("What is the IP address of your Inverter: ")
+		else:
+			envoy_ip = comm_creds['envoy_ip']
 		system_id = ""
 		user_id = ""
-                envoy_serial_no = lanenvoyserialfinder()
-                datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		envoy_serial_no = lanenvoyserialfinder()
+		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
@@ -454,76 +454,76 @@ elif os.path.isfile("APIwebsig.db"):
 		comm_creds = retrievecommoncredentials()
 		print 'Current UID: {}'.format(comm_creds['datalogger_id'])
 		solarcoin_sig_address = comm_creds['solarcoin_sig_address']
-                print 'Solar Panel: {}'.format(comm_creds['solar_panel'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
-                else:
-                        solar_panel = comm_creds['solar_panel']
-                print 'Tilt: {}'.format(comm_creds['tilt'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        tilt = tilttest()
-                else:
-                        tilt = comm_creds['tilt']
-                print 'Azimuth: {}'.format(comm_creds['azimuth'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        azimuth = azimuthtest()
-                else:
-                        azimuth = comm_creds['azimuth']
-                print 'Inverter: {}'.format(comm_creds['solar_inverter'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
-                else:
-                        solar_inverter = comm_creds['solar_inverter']
-                print 'Data-logger: {}'.format(comm_creds['d_logger_type'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        d_logger_type = raw_input ("What is the Make, Model & Part Number of your data-logging device: ")
-                else:
-                        d_logger_type = comm_creds['d_logger_type']
-                print 'Peak Watt: {}'.format(comm_creds['peak_watt'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        peak_watt = peakwatttest()
-                else:
-                        peak_watt = comm_creds['peak_watt']
-                print 'Latitude: {}'.format(comm_creds['latitude'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        latitude = latitudetest()
-                else:
-                        latitude = comm_creds['latitude']
-                print 'Longitude: {}'.format(comm_creds['longitude'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        longitude = longitudetest()
-                else:
-                        longitude = comm_creds['longitude']
-                print 'Comment: {}'.format(comm_creds['message'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        message = messagetest()
-                else:
-                        message = comm_creds['message']
-                print 'Enphase System ID: {}'.format(comm_creds['system_id'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        system_id = raw_input ("What is your Enphase System ID: ")
-                else:
-                        system_id = comm_creds['system_id']
-                print 'Enphase User ID: {}'.format(comm_creds['user_id'])
-                details_changer = raw_input ('Change Y/N?: ').lower()
-                if details_changer == 'y':
-                        user_id = raw_input ("What is your Enphase User ID: ")
-                else:
-                        user_id = comm_creds['user_id']
+		print 'Solar Panel: {}'.format(comm_creds['solar_panel'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			solar_panel = raw_input ("What is the Make, Model & Part Number of your solar panel: ")
+		else:
+			solar_panel = comm_creds['solar_panel']
+		print 'Tilt: {}'.format(comm_creds['tilt'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			tilt = tilttest()
+		else:
+			tilt = comm_creds['tilt']
+		print 'Azimuth: {}'.format(comm_creds['azimuth'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			azimuth = azimuthtest()
+		else:
+			azimuth = comm_creds['azimuth']
+		print 'Inverter: {}'.format(comm_creds['solar_inverter'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			solar_inverter = raw_input ("What is the Make, Model & Part Number of your inverter: ")
+		else:
+			solar_inverter = comm_creds['solar_inverter']
+		print 'Data-logger: {}'.format(comm_creds['d_logger_type'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			d_logger_type = raw_input ("What is the Make, Model & Part Number of your data-logging device: ")
+		else:
+			d_logger_type = comm_creds['d_logger_type']
+			print 'Peak Watt: {}'.format(comm_creds['peak_watt'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			peak_watt = peakwatttest()
+		else:
+			peak_watt = comm_creds['peak_watt']
+		print 'Latitude: {}'.format(comm_creds['latitude'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			latitude = latitudetest()
+		else:
+			latitude = comm_creds['latitude']
+		print 'Longitude: {}'.format(comm_creds['longitude'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			longitude = longitudetest()
+		else:
+			longitude = comm_creds['longitude']
+		print 'Comment: {}'.format(comm_creds['message'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			message = messagetest()
+		else:
+			message = comm_creds['message']
+		print 'Enphase System ID: {}'.format(comm_creds['system_id'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			system_id = raw_input ("What is your Enphase System ID: ")
+		else:
+			system_id = comm_creds['system_id']
+		print 'Enphase User ID: {}'.format(comm_creds['user_id'])
+		details_changer = raw_input ('Change Y/N?: ').lower()
+		if details_changer == 'y':
+			user_id = raw_input ("What is your Enphase User ID: ")
+		else:
+			user_id = comm_creds['user_id']
 		envoy_ip = ""
-                envoy_serial_no = webenvoyserialfinder()
-                datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
-                databasecreate()
+		envoy_serial_no = webenvoyserialfinder()
+		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
 		writetoblockchainsys()
@@ -558,8 +558,8 @@ else:
 		system_id = raw_input ("What is your Enphase System ID: ")
 		user_id = raw_input ("What is your Enphase User ID: ")
 		envoy_ip = ""
-                envoy_serial_no = webenvoyserialfinder()
-                datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		envoy_serial_no = webenvoyserialfinder()
+		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
@@ -609,8 +609,8 @@ while True:
 			sleeptimer()
 
 	except KeyboardInterrupt:
-       		del solarcoin_passphrase
-       		gc.collect()
+		del solarcoin_passphrase
+		gc.collect()
 		print''
 		print("Stopping Datalogger in 10 seconds")
 		time.sleep(10)
