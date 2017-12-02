@@ -15,7 +15,7 @@ Script asks for wallet passphrase (passphrase is invisible while typed), then as
 
 The Script will immediately send a Transaction to register the system information into the blockchain.  Therafter the solar inverter will be queried relative to the solar installation kWp (kilo-Watts peak) with large systems more frequently up to a maximum of 30 seconds, small systems as little as once every 20 days; the datalogger will collect incremental energy readings from the inverter, if the amount of energy collected equals or exceeds 10kWh since the last check then a sample of 8 x MWh readings will report to the block-chain; otherwise the solar inverter will be queried every x seconds until the total exceeds 10kWh.  Once the MWh of the system is reported to the block-chain, a new MWh checkpoint is set and the process re-starts querying every x seconds.
 
-The datalogs to the blockchain are automatically signed usin a designated address (SigAddr) from the SolarCoin wallet, this allows a casual user with the SunFinder to validate that a datalog is genuine and has not been spoofed by a 3rd party. 
+The datalogs to the blockchain are automatically signed using a designated address (SigAddr) from the SolarCoin wallet, this allows a casual user with the SunFinder to validate that a datalog is genuine and has not been spoofed by a 3rd party. 
 
 TIP: To run the datalogger in the background you can use:
 > sudo apt-get update -y && sudo apt-get upgrade
