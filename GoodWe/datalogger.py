@@ -12,7 +12,7 @@ import gc
 import getpass
 import hashlib
 import json
-from lxml import html
+#from lxml import html
 import os.path
 import random
 import requests
@@ -111,11 +111,11 @@ def inverterqueryincrement():
 	#inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
 
-def lanenvoyserialfinder():
-	page = requests.get('http://'+envoy_ip+'/home?locale=en')
-	tree = html.fromstring(page.content)
-	serial_number = str(tree.xpath('//td[2][@class="hdr_line"]/text()')[0][21:])
-	return serial_number
+#def lanenvoyserialfinder():
+#	page = requests.get('http://'+envoy_ip+'/home?locale=en')
+#	tree = html.fromstring(page.content)
+#	serial_number = str(tree.xpath('//td[2][@class="hdr_line"]/text()')[0][21:])
+#	return serial_number
 
 def latitudetest():
 	while True:
@@ -438,7 +438,7 @@ if os.path.isfile("APIlansig.db"):
 			envoy_ip = comm_creds['envoy_ip']
 		system_id = ""
 		user_id = ""
-		envoy_serial_no = lanenvoyserialfinder()
+		envoy_serial_no = '' #lanenvoyserialfinder()
 		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
@@ -542,7 +542,7 @@ else:
 		system_id = ""
 		user_id = ""
 		envoy_ip = raw_input ("What is the IP address of your Inverter: ")
-		envoy_serial_no = lanenvoyserialfinder()
+		envoy_serial_no = '' #lanenvoyserialfinder()
 		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
