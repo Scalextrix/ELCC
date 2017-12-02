@@ -2,7 +2,7 @@
 
 This repository contains code that is intended to allow a user of a SolarCoin crypto-currency wallet (see www.solarcoin.org), to report solar PV generation data into the SolarCoin block-chain.  The ElectriCChain project (see www.electricchain.org) has published a standardized syntax for data reporting (https://github.com/lpninja/) which is the foundation upon which future block-chain services can be built; the code here is compliant with this syntax.  The user will need access to information from their SolarCoin wallet and from their solar PV system to use the script successfully.
 
-It is intended that low power IoT devices will be used for running the block-chain and gathering the solar PV generation data.  These scripts are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite or Debian, it is designed to work with solarcoind or Qt.  Solarcoin repo available from https://github.com/onsightit/solarcoin
+It is intended that low power IoT devices will be used for running the block-chain and gathering the solar PV generation data.  These scripts are curently in Python 2.7 and should work natively on Raspberry Pi 2/3 with Raspian-lite or Debian, it is designed to work with solarcoind or Qt.  Windows users need to insall Python 2.7.  Solarcoin repo available from https://github.com/onsightit/solarcoin
 
 Instructions to compile SolarCoin daemon on Raspberry Pi: https://github.com/Scalextrix/SolarCoin-Raspberry-Pi-Node
 
