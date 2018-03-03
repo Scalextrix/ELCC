@@ -23,7 +23,7 @@ import time
 import urllib2
 import uuid
 
-energy_reporting_increment = 0.000001 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
+energy_reporting_increment = 0.01 # Sets the frequency with which the reports will be made to block-chain, value in MWh e.g. 0.01 = 10kWh
 manufacturer_attribution = "Information source is SolarEdge's monitoring system, http://solaredge.com"
 
 def azimuthtest():
@@ -77,8 +77,8 @@ def databasecreate():
 	c = conn.cursor()
 	c.execute('''DROP TABLE IF EXISTS SYSTEMDETAILS''')
 	conn.commit()
-	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, envoyip TEXT, panelid TEXT, tilt TEXT, azimuth TEXT, inverterid TEXT, datalogger TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, slrsigaddr BLOB)''')
-	c.execute("INSERT OR REPLACE INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, envoy_ip, solar_panel, tilt, azimuth, solar_inverter, d_logger_type, peak_watt, latitude, longitude, message, solarcoin_sig_address,))
+	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, envoyip TEXT, panelid TEXT, tilt TEXT, azimuth TEXT, inverterid TEXT, datalogger TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, slrsigaddr BLOB, apikey TEXT)''')
+	c.execute("INSERT OR REPLACE INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, envoy_ip, solar_panel, tilt, azimuth, solar_inverter, d_logger_type, peak_watt, latitude, longitude, message, solarcoin_sig_address, api_key))
 	conn.commit()
 	conn.close()
 
@@ -107,7 +107,7 @@ def inverterqueryincrement():
 		inverter_query_increment = int(86400/20/system_watt)
 	else:
 		inverter_query_increment = 30
-	inverter_query_increment = 30 # Uncomment for testing
+	#inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
 
 #def lanenvoyserialfinder():
@@ -218,8 +218,9 @@ def retrievecommoncredentials():
 	message = str(c.execute('select msg from SYSTEMDETAILS').fetchone()[0])
 	d_logger_type = str(c.execute('select datalogger from SYSTEMDETAILS').fetchone()[0])
 	solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
+	api_key= str(c.execute('select apikey from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
-	return {'datalogger_id':datalogger_id, 'system_id':system_id, 'user_id':user_id, 'envoy_ip':envoy_ip, 'solar_panel':solar_panel, 'tilt':tilt, 'azimuth':azimuth, 'solar_inverter':solar_inverter, 'd_logger_type':d_logger_type, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'solarcoin_sig_address':solarcoin_sig_address}
+	return {'datalogger_id':datalogger_id, 'system_id':system_id, 'user_id':user_id, 'envoy_ip':envoy_ip, 'solar_panel':solar_panel, 'tilt':tilt, 'azimuth':azimuth, 'solar_inverter':solar_inverter, 'd_logger_type':d_logger_type, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'solarcoin_sig_address':solarcoin_sig_address, 'api_key':api_key}
 
 def sleeptimer():
 	print ("******** "+manufacturer_attribution+" ********")
@@ -265,9 +266,9 @@ def urltestandjsonload(url):
 		return json_data
 
 def webenvoyserialfinder():
-	url = ("https://api.enphaseenergy.com/api/v2/systems/"+system_id+"/envoys?&key="+api_key+"&user_id="+user_id)
+	url = ("https://monitoringapi.solaredge.com/equipment/"+system_id+"/list?&api_key="+api_key)
 	json_data = urltestandjsonload(url)
-	serial_number = str(json_data['envoys'][0]['serial_number'])
+	serial_number = str(json_data['reporters']['list'][0]['serialNumber'])
 	return serial_number
 
 def writetoblockchaingen():
@@ -305,7 +306,7 @@ def writetoblockchaingen():
 	hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash) 
 	print("Initiating SolarCoin.....  TXID:")
 	solarcoin_address = str(instruct_wallet('getnewaddress', [])['result'])
-	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, '', '', hash_tx_message])['result']
+	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, "", "", hash_tx_message])['result']
 	instruct_wallet('walletlock', [])
 	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999, True])
 	refreshenergylog()
@@ -331,7 +332,7 @@ def writetoblockchainsys():
 	hash_tx_message = str('sysv1'+tx_message+'Sig:'+sig_hash)
 	print("Writing System Details to Block-Chain..... TXID:")
 	solarcoin_address = str(instruct_wallet('getnewaddress', [])['result'])
-	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, '', '', hash_tx_message])['result']
+	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, "", "", hash_tx_message])['result']
 	instruct_wallet('walletlock', [])
 	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999, True])
 	print 'Waiting 5 minutes to allow System Details to be written to Block'
@@ -362,7 +363,7 @@ else:
 	time.sleep(10)
 	sys.exit()
 
-instruct_wallet('settxfee', [0.0001])
+instruct_wallet('settxfee', [0.001])
 checksum = str(checksum())
 solarcoin_passphrase = passphrasetest()
 send_amount = calculateamounttosend()
@@ -535,12 +536,13 @@ else:
 	latitude = latitudetest()
 	longitude = longitudetest()
 	message = messagetest()
-	lan_web = raw_input ("Is the Inverter on your LAN: ").lower()
+	lan_web = 'web'
 	if lan_web == "y" or lan_web == "yes" or lan_web == "lan":
 		dbname="APIlansig.db"
 		system_id = ""
 		user_id = ""
 		envoy_ip = raw_input ("What is the IP address of your Inverter: ")
+		api_key = ""
 		envoy_serial_no = '' #lanenvoyserialfinder()
 		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
@@ -552,7 +554,8 @@ else:
 		system_id = raw_input ("What is your SolarEdge System ID: ")
 		user_id = ""
 		envoy_ip = ""
-		envoy_serial_no = raw_input ("What is your GoodWe Inverter Serial Number: ")
+		api_key = raw_input ("What is your SolarEdge API key: ")
+		envoy_serial_no = webenvoyserialfinder() 
 		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
@@ -565,7 +568,6 @@ else:
 		time.sleep(10)
 		sys.exit()
 
-api_key = raw_input ("What is your SolarEdge API key: ")
 comm_creds = retrievecommoncredentials()
 inverter_query_increment = float(inverterqueryincrement())
 
@@ -579,7 +581,7 @@ while True:
 			json_data = urltestandjsonload(url)
 			total_energy = float(json_data['wattHoursLifetime'])/1000000
 		elif os.path.isfile("APIwebsig.db"):
-			url = ("https://monitoringapi.solaredge.com/site/"+comm_creds['system_id']+"/overview?&api_key="+api_key)
+			url = ("https://monitoringapi.solaredge.com/site/"+comm_creds['system_id']+"/overview?&api_key="+comm_creds['api_key'])
 			json_data = urltestandjsonload(url)
 			total_energy = (float(json_data['overview']['lifeTimeData']['energy'])) / 1000000
 			print total_energy
@@ -593,7 +595,7 @@ while True:
 			send_amount = calculateamounttosend()
 			writetoblockchaingen()
 			print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
-			sleeptimer()		
+			sleeptimer()
 		else:
 			energy_left = (energy_reporting_increment - (energy_log['energy_list'][energy_log['energy_list_length']-1] - energy_log['energy_list'][0])) * 1000
 			if energy_left <= 0:
