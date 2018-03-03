@@ -237,8 +237,8 @@ def tilttest():
 				tilt_int = int(tilt)
 				if tilt_int <= 90 and tilt_int >= 0:
 					return tilt
-			else:
-				print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
+				else:
+					print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
 			except ValueError:
 				print "*******ERROR: You must enter Tilt as a number between 0 and 90, or 'tracked' *******"
 
