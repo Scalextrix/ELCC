@@ -17,15 +17,27 @@ The Script will immediately send a Transaction to register the system informatio
 
 The datalogs to the blockchain are automatically signed using a designated address (SigAddr) from the SolarCoin wallet, this allows a casual user with the SunFinder to validate that a datalog is genuine and has not been spoofed by a 3rd party.
 
-# Getting Started with Python & Linux
+Example System Information Transaction: https://chainz.cryptoid.info/slr/tx.dws?3397966.htm
 
-TIP: While it is possible to install Python 2.7 on Windows, an easier option for Windows 10 x64 users is to install Linux on their PC; simply go to 'Windows Features' and check the 'Windows Subsystem for Linux' box, and follow the instructions. You now have Linux on your PC, to access Linux subsystem:
+Example Energy Generation Transaction: https://chainz.cryptoid.info/slr/tx.dws?3397985.htm
+
+# Windows Users: Getting Started with Python & Linux
+
+While it is possible to install Python 2.7 on Windows, probably an easier option for Windows 10 x64 users is to install Linux on their PC; simply go to 'Windows Features' and check the 'Windows Subsystem for Linux' box, and follow the instructions. You now have Linux on your PC, to access Linux subsystem, open a Command Prompt:
 
 > bash
 
-To install Python
+You are now in the Linux Bash shell: To install Python
 
 > sudo apt-get install python
+
+You may need to install some additional packages for Python:
+
+> sudo apt-get install python-requests python-lxml
+
+To download this software:
+
+> git clone https://github.com/Scalextrix/ELCC
 
 TIP: To run the datalogger in the background you can use:
 
@@ -40,8 +52,5 @@ To resume a screen:
 To leave a screen session and leave it running CRTL+a then d.
 To leave a screen session and kill it CTRL+a then k.
 
-Example System Information Transaction: https://chainz.cryptoid.info/slr/tx.dws?3397966.htm
-
-Example Energy Generation Transaction: https://chainz.cryptoid.info/slr/tx.dws?3397985.htm
 
 Any tips to my SLR address: 8cESoZyjFvx2Deq6VjQLqPfAwu8UXjcBkK  Thanks
