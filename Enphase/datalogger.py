@@ -340,65 +340,34 @@ def writetoblockchainsys():
 
 if os.name == 'nt':
 	user_account = getpass.getuser()
-	try:
-		f = open('C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account), 'rb')
-	except:
-		print 'solarcoin.conf not found in standard location'
-		conf_location = raw_input('Please enter the FULL path to solarcoin.conf: ')
-		f = open(conf_location)
-
-	try:
-		for line in f:
-			line = line.rstrip()
-			if line[0:7] == 'rpcuser':
-				rpc_user = line[line.find('=')+1:]
-			if line[0:11] == 'rpcpassword':
-				rpc_pass = line[line.find('=')+1:]
-		f.close()
-	except:
-		f.close()
-		print 'rpcuser & rpcpassword not found in solarcoin.conf, please add and try again'
-		print 'Exit in 10 seconds'
-		time.sleep(10)
-		sys.exit()
-
+	conf_location = 'C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account)
 elif os.name == 'posix':
 	homedir = os.environ['HOME']
-	try:
-		f = open(homedir+'/.solarcoin/solarcoin.conf', 'r')
-	except:
-		print 'solarcoin.conf not found in standard location'
-		conf_location = raw_input('Please enter the FULL path to solarcoin.conf: ')
-		f = open(conf_location)
-
-	try:
-		for line in f:
-			line = line.rstrip()
-			if line[0:7] == 'rpcuser':
-				rpc_user = line[line.find('=')+1:]
-			if line[0:11] == 'rpcpassword':
-				rpc_pass = line[line.find('=')+1:]
-		f.close()
-	except:
-		f.close()
-		print 'rpcuser & rpcpassword not found in solarcoin.conf, please add and try again'
-		print 'Exit in 10 seconds'
-		time.sleep(10)
-		sys.exit()
-
+	conf_location = '{}/.solarcoin/solarcoin.conf'.format(homedir)
 else:
-	print 'solarcoin.conf not found on this computer'
-	print 'You may need to: '
-	print 'A - Install SolarCoin on this computer, OR'
-	print 'B - Enter the rpcuser & rpcpassword from your existing solarcoin.conf file'
-	rpc_choice = raw_input('Please choose A or B').upper() 
-	if rpc_choice == 'B':
-		rpc_user = raw_input('Please enter the "rpcuser" from solarcoin.conf')
-		rpc_pass = raw_input('Please enter the "rpcpassword" from solarcoin.conf')
-	else:
-		print 'Exiting in 10 seconds: Please install SolarCoin'
-		time.sleep(10)
-		sys.exit()
+	conf_location = ''
+while True:
+	try:
+		solarcoin_conf = open(conf_location, 'rb')
+		break
+	except:
+		print 'solarcoin.conf not found'
+		conf_location = raw_input('Please enter the FULL path to solarcoin.conf: ')
+rpc_user = ''
+rpc_pass = ''
+for line in solarcoin_conf:
+	line = line.rstrip()
+	if line[0:7] == 'rpcuser':
+		rpc_user = line[line.find('=')+1:]
+	if line[0:11] == 'rpcpassword':
+		rpc_pass = line[line.find('=')+1:]
+solarcoin_conf.close()
+if rpc_user == '' or rpc_pass == '':
+	print 'solarcoin.conf found but "rpcuser=" or "rpcpassword=" missing'
+	print 'Please add rpcuser=<username_here> and rpcpassword=<password_here> to solarcoin.conf'
+	print 'Exit in 10 seconds'
+	time.sleep(10)
+	sys.exit()
 
 instruct_wallet('settxfee', [0.0001])
 checksum = str(checksum())
