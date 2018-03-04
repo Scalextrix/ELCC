@@ -6,7 +6,7 @@ instructs the solarcoin wallet to make a transaction to record onto blockchain""
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "6.1"
+__version__ = "6.2"
 
 import gc
 import getpass
@@ -369,7 +369,7 @@ if rpc_user == '' or rpc_pass == '':
 	time.sleep(10)
 	sys.exit()
 
-instruct_wallet('settxfee', [0.001])
+instruct_wallet('settxfee', [0.0001])
 checksum = str(checksum())
 solarcoin_passphrase = passphrasetest()
 send_amount = calculateamounttosend()
