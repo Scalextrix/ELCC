@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """datalogger.py: Queries the solar PV datalogger device on LAN or web, pulls production data and 
-instructs the solarcoin daemon to make a transaction to record onto blockchain"""
+instructs the solarcoin wallet to make a transaction to record onto blockchain"""
 
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
@@ -68,7 +68,7 @@ def calculateamounttosend():
 
 def checksum():
 	hasher = hashlib.sha1()
-	with open('datalogger.py', 'rb') as afile:  
+	with open('datalogger.py', 'rb') as afile:
 		buf = afile.read()
 		hasher.update(buf)
 	return (hasher.hexdigest())
@@ -78,8 +78,8 @@ def databasecreate():
 	c = conn.cursor()
 	c.execute('''DROP TABLE IF EXISTS SYSTEMDETAILS''')
 	conn.commit()
-	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, envoyip TEXT, panelid TEXT, tilt TEXT, azimuth TEXT, inverterid TEXT, datalogger TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, slrsigaddr BLOB)''')
-	c.execute("INSERT OR REPLACE INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, envoy_ip, solar_panel, tilt, azimuth, solar_inverter, d_logger_type, peak_watt, latitude, longitude, message, solarcoin_sig_address,))
+	c.execute('''CREATE TABLE IF NOT EXISTS SYSTEMDETAILS (dataloggerid BLOB, systemid TEXT, userid TEXT, inverterip TEXT, panelid TEXT, tilt TEXT, azimuth TEXT, inverterid TEXT, datalogger TEXT, pkwatt TEXT, lat TEXT, lon TEXT, msg TEXT, slrsigaddr BLOB)''')
+	c.execute("INSERT OR REPLACE INTO SYSTEMDETAILS VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);", (datalogger_id, system_id, user_id, inverter_ip, solar_panel, tilt, azimuth, solar_inverter, d_logger_type, peak_watt, latitude, longitude, message, solarcoin_sig_address,))
 	conn.commit()
 	conn.close()
 
@@ -111,8 +111,8 @@ def inverterqueryincrement():
 	#inverter_query_increment = 30 # Uncomment for testing
 	return inverter_query_increment
 
-def lanenvoyserialfinder():
-	page = requests.get('http://'+envoy_ip+'/home?locale=en')
+def laninverterserialfinder():
+	page = requests.get('http://'+inverter_ip+'/home?locale=en')
 	tree = html.fromstring(page.content)
 	serial_number = str(tree.xpath('//td[2][@class="hdr_line"]/text()')[0][21:])
 	return serial_number
@@ -208,7 +208,7 @@ def retrievecommoncredentials():
 	datalogger_id = str(c.execute('select dataloggerid from SYSTEMDETAILS').fetchone()[0])
 	system_id = str(c.execute('select systemid from SYSTEMDETAILS').fetchone()[0])
 	user_id = str(c.execute('select userid from SYSTEMDETAILS').fetchone()[0])
-	envoy_ip = str(c.execute('select envoyip from SYSTEMDETAILS').fetchone()[0])
+	inverter_ip = str(c.execute('select inverterip from SYSTEMDETAILS').fetchone()[0])
 	solar_panel = str(c.execute('select panelid from SYSTEMDETAILS').fetchone()[0])
 	tilt = str(c.execute('select tilt from SYSTEMDETAILS').fetchone()[0])
 	azimuth = str(c.execute('select azimuth from SYSTEMDETAILS').fetchone()[0])
@@ -220,7 +220,7 @@ def retrievecommoncredentials():
 	d_logger_type = str(c.execute('select datalogger from SYSTEMDETAILS').fetchone()[0])
 	solarcoin_sig_address = str(c.execute('select slrsigaddr from SYSTEMDETAILS').fetchone()[0])
 	conn.close()
-	return {'datalogger_id':datalogger_id, 'system_id':system_id, 'user_id':user_id, 'envoy_ip':envoy_ip, 'solar_panel':solar_panel, 'tilt':tilt, 'azimuth':azimuth, 'solar_inverter':solar_inverter, 'd_logger_type':d_logger_type, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'solarcoin_sig_address':solarcoin_sig_address}
+	return {'datalogger_id':datalogger_id, 'system_id':system_id, 'user_id':user_id, 'inverter_ip':inverter_ip, 'solar_panel':solar_panel, 'tilt':tilt, 'azimuth':azimuth, 'solar_inverter':solar_inverter, 'd_logger_type':d_logger_type, 'peak_watt':peak_watt, 'latitude':latitude, 'longitude':longitude, 'message':message, 'solarcoin_sig_address':solarcoin_sig_address}
 
 def sleeptimer():
 	print ("******** "+manufacturer_attribution+" ********")
@@ -265,7 +265,7 @@ def urltestandjsonload(url):
 	else:
 		return json_data
 
-def webenvoyserialfinder():
+def webinverterserialfinder():
 	url = ("https://api.enphaseenergy.com/api/v2/systems/"+system_id+"/envoys?&key="+api_key+"&user_id="+user_id)
 	json_data = urltestandjsonload(url)
 	serial_number = str(json_data['envoys'][0]['serial_number'])
@@ -303,7 +303,7 @@ def writetoblockchaingen():
 	instruct_wallet('walletlock', [])
 	instruct_wallet('walletpassphrase', [solarcoin_passphrase, 9999999])
 	sig_hash = str(instruct_wallet('signmessage', [comm_creds['solarcoin_sig_address'], checksum_tx_message])['result'])
-	hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash) 
+	hash_tx_message = str('genv1'+tx_message+'Sig:'+sig_hash)
 	print("Initiating SolarCoin.....  TXID:")
 	solarcoin_address = str(instruct_wallet('getnewaddress', [])['result'])
 	print instruct_wallet('sendtoaddress', [solarcoin_address, send_amount, '', '', hash_tx_message])['result']
@@ -430,16 +430,16 @@ if os.path.isfile("APIlansig.db"):
 			message = messagetest()
 		else:
 			message = comm_creds['message']
-		print 'IP Address: {}'.format(comm_creds['envoy_ip'])
+		print 'IP Address: {}'.format(comm_creds['inverter_ip'])
 		details_changer = raw_input ('Change Y/N?: ').lower()
 		if details_changer == 'y':
-			envoy_ip = raw_input ("What is the IP address of your Inverter: ")
+			inverter_ip = raw_input ("What is the IP address of your Inverter: ")
 		else:
-			envoy_ip = comm_creds['envoy_ip']
+			inverter_ip = comm_creds['inverter_ip']
 		system_id = ""
 		user_id = ""
-		envoy_serial_no = lanenvoyserialfinder()
-		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		inverter_serial_no = laninverterserialfinder()
+		datalogger_id = hashlib.sha1(inverter_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
@@ -520,9 +520,9 @@ elif os.path.isfile("APIwebsig.db"):
 			user_id = raw_input ("What is your Enphase User ID: ")
 		else:
 			user_id = comm_creds['user_id']
-		envoy_ip = ""
-		envoy_serial_no = webenvoyserialfinder()
-		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		inverter_ip = ""
+		inverter_serial_no = webinverterserialfinder()
+		datalogger_id = hashlib.sha1(inverter_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
@@ -546,9 +546,9 @@ else:
 		dbname="APIlansig.db"
 		system_id = ""
 		user_id = ""
-		envoy_ip = raw_input ("What is the IP address of your Inverter: ")
-		envoy_serial_no = lanenvoyserialfinder()
-		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		inverter_ip = raw_input ("What is the IP address of your Inverter: ")
+		inverter_serial_no = laninverterserialfinder()
+		datalogger_id = hashlib.sha1(inverter_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
@@ -557,9 +557,9 @@ else:
 		dbname="APIwebsig.db"
 		system_id = raw_input ("What is your Enphase System ID: ")
 		user_id = raw_input ("What is your Enphase User ID: ")
-		envoy_ip = ""
-		envoy_serial_no = webenvoyserialfinder()
-		datalogger_id = hashlib.sha1(envoy_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
+		inverter_ip = ""
+		inverter_serial_no = webinverterserialfinder()
+		datalogger_id = hashlib.sha1(inverter_serial_no+solar_panel+str(tilt)+str(azimuth)+solar_inverter+d_logger_type+str(peak_watt)+latitude+longitude).hexdigest()
 		databasecreate()
 		comm_creds = retrievecommoncredentials()
 		print 'New UID: {}'.format(comm_creds['datalogger_id'])
@@ -580,7 +580,7 @@ while True:
 		print ("---------- Press CTRL + c at any time to stop the Datalogger ----------")
 		timestamp()
 		if os.path.isfile("APIlansig.db"):
-			url = ("http://"+comm_creds['envoy_ip']+"/api/v1/production")
+			url = ("http://"+comm_creds['inverter_ip']+"/api/v1/production")
 			json_data = urltestandjsonload(url)
 			total_energy = float(json_data['wattHoursLifetime'])/1000000
 		elif os.path.isfile("APIwebsig.db"):
@@ -597,7 +597,7 @@ while True:
 			send_amount = calculateamounttosend()
 			writetoblockchaingen()
 			print ("Waiting {:.0f} seconds (approx {:.2f} days)") .format(inverter_query_increment, (inverter_query_increment/86400))
-			sleeptimer()		
+			sleeptimer()
 		else:
 			energy_left = (energy_reporting_increment - (energy_log['energy_list'][energy_log['energy_list_length']-1] - energy_log['energy_list'][0])) * 1000
 			if energy_left <= 0:
