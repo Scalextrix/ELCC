@@ -144,7 +144,7 @@ def searchstarter():
 		start_block_number = raw_input('Start search at which block?: ')
 		try:
 			start_block_number = int(start_block_number)
-				
+
 		except:
 			print 'You must enter a whole number, please try again'
 			return searchstarter()

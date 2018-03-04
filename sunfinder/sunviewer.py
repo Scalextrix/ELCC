@@ -32,7 +32,7 @@ def latitudeconverter(latitudes):
         else:
                 latitudes = float(latitudes[0:-1])
         return latitudes
-                                  
+
 userselector = raw_input('Enter a UserID or blank for all users ')
 xaxischooser = raw_input('Plot energy against "date" or "blocks"? ')
 
