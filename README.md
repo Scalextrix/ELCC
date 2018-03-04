@@ -39,6 +39,8 @@ To download this software:
 
 > git clone https://github.com/Scalextrix/ELCC
 
+Now check the inverter manufacturer directory README.md for any specific instructions.
+
 TIP: To run the datalogger in the background you can use:
 
 > sudo apt-get install screen
