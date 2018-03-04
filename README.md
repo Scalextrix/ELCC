@@ -17,6 +17,8 @@ The Script will immediately send a Transaction to register the system informatio
 
 The datalogs to the blockchain are automatically signed using a designated address (SigAddr) from the SolarCoin wallet, this allows a casual user with the SunFinder to validate that a datalog is genuine and has not been spoofed by a 3rd party.
 
+# Getting Started with Python & Linux
+
 TIP: While it is possible to install Python 2.7 on Windows, an easier option for Windows 10 x64 users is to install Linux on their PC; simply go to 'Windows Features' and check the 'Windows Subsystem for Linux' box, and follow the instructions. You now have Linux on your PC, to access Linux subsystem:
 
 > bash
