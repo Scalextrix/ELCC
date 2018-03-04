@@ -367,7 +367,7 @@ if rpc_user == '' or rpc_pass == '':
 	print 'Please add rpcuser=<username_here> and rpcpassword=<password_here> to solarcoin.conf'
 	print 'Exit in 10 seconds'
 	time.sleep(10)
-sys.exit()
+	sys.exit()
 
 instruct_wallet('settxfee', [0.001])
 checksum = str(checksum())
