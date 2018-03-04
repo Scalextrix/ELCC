@@ -18,11 +18,13 @@ There are two Python packages to be installed 'requests' and 'lxml'
 > sudo apt-get install python-lxml
 
 
-To start the datalogger:
+To get the datalogger software: 
 > git clone https://github.com/Scalextrix/ELCC
 
 > cd ELCC/Enphase
 
 > chmod +x datalogger.py
+
+To start the datalogger:
 
 > ./datalogger.py
