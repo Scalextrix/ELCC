@@ -340,28 +340,34 @@ def writetoblockchainsys():
 
 if os.name == 'nt':
 	user_account = getpass.getuser()
-	f = open('C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account), 'rb')
-	for line in f:
-		line = line.rstrip()
-		if line[0:7] == 'rpcuser':
-			rpc_user = line[line.find('=')+1:]
-		if line[0:11] == 'rpcpassword':
-			rpc_pass = line[line.find('=')+1:]
-	f.close()
+	conf_location = 'C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account)
 elif os.name == 'posix':
 	homedir = os.environ['HOME']
-	f = open(homedir+'/.solarcoin/solarcoin.conf', 'r')
-	for line in f:
-		line = line.rstrip()
-		if line[0:7] == 'rpcuser':
-			rpc_user = line[line.find('=')+1:]
-		if line[0:11] == 'rpcpassword':
-			rpc_pass = line[line.find('=')+1:]
-	f.close()
+	conf_location = '{}/.solarcoin/solarcoin.conf'.format(homedir)
 else:
-	print 'SolarCoin.conf not found, please ensure it is in the default location'
+	conf_location = ''
+while True:
+	try:
+		solarcoin_conf = open(conf_location, 'rb')
+		break
+	except:
+		print 'solarcoin.conf not found'
+		conf_location = raw_input('Please enter the FULL path to solarcoin.conf: ')
+rpc_user = ''
+rpc_pass = ''
+for line in solarcoin_conf:
+	line = line.rstrip()
+	if line[0:7] == 'rpcuser':
+		rpc_user = line[line.find('=')+1:]
+	if line[0:11] == 'rpcpassword':
+		rpc_pass = line[line.find('=')+1:]
+solarcoin_conf.close()
+if rpc_user == '' or rpc_pass == '':
+	print 'solarcoin.conf found but "rpcuser=" or "rpcpassword=" missing'
+	print 'Please add rpcuser=<username_here> and rpcpassword=<password_here> to solarcoin.conf'
+	print 'Exit in 10 seconds'
 	time.sleep(10)
-	sys.exit()
+sys.exit()
 
 instruct_wallet('settxfee', [0.001])
 checksum = str(checksum())
