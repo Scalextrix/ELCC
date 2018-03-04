@@ -43,10 +43,10 @@ def azimuthtest():
 				print "*******ERROR: You must enter Azimuth as a number between 0 and 359, or 'tracked' *******"
 
 def calculateamounttosend():
-	utxos = instruct_wallet('listunspent', [])['result']		
+	utxos = instruct_wallet('listunspent', [])['result']
 	for u in utxos:
 		amounts = [u['amount'] for u in utxos]
-	wallet_balance = float(instruct_wallet('getbalance', [])['result'])		
+	wallet_balance = float(instruct_wallet('getbalance', [])['result'])
 	if wallet_balance < 0.0005:
 		print ("*******ERROR: wallet balance of {}SLR too low for reliable datalogging, add more SLR to wallet *******") .format(wallet_balance)
 		time.sleep(10)
@@ -68,7 +68,7 @@ def calculateamounttosend():
 
 def checksum():
 	hasher = hashlib.sha1()
-	with open('datalogger.py', 'rb') as afile:  
+	with open('datalogger.py', 'rb') as afile:
 		buf = afile.read()
 		hasher.update(buf)
 	return (hasher.hexdigest())
