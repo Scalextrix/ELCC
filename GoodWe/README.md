@@ -6,7 +6,7 @@ To start the datalogger:
 
     git clone https://github.com/Scalextrix/ELCC
 
-    cd ELCC/SolarEdge
+    cd ELCC/GoodWe
 
     chmod +x datalogger.py
 
