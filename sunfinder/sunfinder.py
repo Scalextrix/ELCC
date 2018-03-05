@@ -1,31 +1,20 @@
 #!/usr/bin/env python
 
-"""sunfinder.py: Queries the SolarCoin Daemon, pulls solar production data and
-loads to database"""
+"""sunfinder.py: Queries the SolarCoin wallet, pulls solar production data and loads to database"""
 
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "3.1"
+__version__ = "3.2"
 
 from datetime import datetime
 import getpass
-import hashlib
 import json
 import os.path
 import requests
 import sqlite3
 import sys
 import time
-
-def checksum():
-	hasher = hashlib.sha1()
-	current_path = os.path.dirname(__file__)
-	datalogger_path = os.path.abspath(os.path.join(current_path, "..", "Enphase", "datalogger.py"))
-	with open(datalogger_path, 'rb') as afile:
-		buf = afile.read()
-		hasher.update(buf)
-	return (hasher.hexdigest())
 
 def databasecreate():
 	conn = sqlite3.connect('solardetails.db')
@@ -42,7 +31,7 @@ def databaseupdategen():
 	conn = sqlite3.connect('solardetails.db')
 	c = conn.cursor()
 	c.execute("INSERT OR IGNORE INTO GENDETAILS VALUES (?,?,?,?,?,?,?,?);", (enddatetime, datalogger_id, tx_hash, block_number, block_time, period, total_mwh, increment_mwh,))
-	c.execute('INSERT OR REPLACE INTO BLOCKTRACK VALUES (?,?);', (block_number, block_hash,))	
+	c.execute('INSERT OR REPLACE INTO BLOCKTRACK VALUES (?,?);', (block_number, block_hash,))
 	conn.commit()
 	conn.close()
 
@@ -74,8 +63,16 @@ def hashcheckergen():
 	c = conn.cursor()
 	solarcoin_sig_address = str(c.execute("select slrsigaddr FROM SYSDETAILS where dataloggerid ='{}'".format(datalogger_id)).fetchone()[0])
 	conn.close()
-	checksum_tx_message = tx_message+checksum
-        return instruct_wallet('verifymessage', [solarcoin_sig_address, hash_present, checksum_tx_message])['result']
+	counter=0
+	while True:
+		checksum_tx_message = tx_message+checksums[counter]
+		validate_sig = instruct_wallet('verifymessage', [solarcoin_sig_address, hash_present, checksum_tx_message])['result']
+		if validate_sig == True:
+			return validate_sig
+		else:
+			counter = counter+1
+			if counter == len(checksums):
+				break
 
 def hashcheckersys(solarcoin_sig_address):
 	# check subsequent system datalogs against first sigaddr, except if this is the first datalog then nothing to check against
@@ -85,9 +82,19 @@ def hashcheckersys(solarcoin_sig_address):
 		solarcoin_sig_address = str(c.execute("select slrsigaddr FROM SYSDETAILS where dataloggerid ='{}'".format(datalogger_id)).fetchone()[0])
 		conn.close()
 	except:
-		print 'NOTE: Signing Address not found for System: {}'.format(datalogger_id)	
-	checksum_tx_message = tx_message+checksum
-	return instruct_wallet('verifymessage', [solarcoin_sig_address, hash_present, checksum_tx_message])['result']
+		print 'NOTE: Signing Address not found for System: {}'.format(datalogger_id)
+		validate_sig = True
+		return validate_sig
+	counter=0
+	while True:
+		checksum_tx_message = tx_message+checksums[counter]
+		validate_sig = instruct_wallet('verifymessage', [solarcoin_sig_address, hash_present, checksum_tx_message])['result']
+		if validate_sig == True:
+			return validate_sig
+		else:
+			counter = counter+1
+			if counter == len(checksums):
+				break
 
 def instruct_wallet(method, params):
 	url = "http://127.0.0.1:18181/"
@@ -158,26 +165,32 @@ def periodtounixtime():
 
 if os.name == 'nt':
 	user_account = getpass.getuser()
-	f = open('C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account), 'rb')
-	for line in f:
-		line = line.rstrip()
-		if line[0:7] == 'rpcuser':
-			rpc_user = line[line.find('=')+1:]
-		if line[0:11] == 'rpcpassword':
-			rpc_pass = line[line.find('=')+1:]
-	f.close()
+	conf_location = 'C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account)
 elif os.name == 'posix':
 	homedir = os.environ['HOME']
-	f = open(homedir+'/.solarcoin/solarcoin.conf', 'r')
-	for line in f:
-		line = line.rstrip()
-		if line[0:7] == 'rpcuser':
-			rpc_user = line[line.find('=')+1:]
-		if line[0:11] == 'rpcpassword':
-			rpc_pass = line[line.find('=')+1:]
-	f.close()
+	conf_location = '/.solarcoin/solarcoin.conf'.format(homedir)
 else:
-	print 'SolarCoin.conf not found, please ensure it is in the default location'
+	conf_location = ''
+while True:
+	try:
+		solarcoin_conf = open(conf_location, 'rb')
+		break
+	except:
+		print 'solarcoin.conf not found'
+		conf_location = raw_input('Please enter the FULL path to solarcoin.conf: ')
+rpc_user = ''
+rpc_pass = ''
+for line in solarcoin_conf:
+	line = line.rstrip()
+	if line[0:7] == 'rpcuser':
+		rpc_user = line[line.find('=')+1:]
+	if line[0:11] == 'rpcpassword':
+		rpc_pass = line[line.find('=')+1:]
+solarcoin_conf.close()
+if rpc_user == '' or rpc_pass == '':
+	print 'solarcoin.conf found but "rpcuser=" or "rpcpassword=" missing'
+	print 'Please add rpcuser=<username_here> and rpcpassword=<password_here> to solarcoi.conf'
+	print 'Exit in 10 seconds'
 	time.sleep(10)
 	sys.exit()
 
@@ -186,7 +199,9 @@ if hash_check_required != 'y':
 	print '*** WARNING: Without digital signature checking, data-logs cannot be verified as genuine! ***'
 	time.sleep(5)
 
-checksum = str(checksum())
+f = open('goodchecksums.txt', 'rb')
+checksums = f.read().splitlines()
+f.close()
 
 while True:
 	print '--------- Sunfinder: Looking for SUNSHINE in the block-chain ---------'
@@ -194,7 +209,7 @@ while True:
 	print ''
 	try:
 		top_block = int(instruct_wallet('getblockcount', [])['result'])
-		start_block_number = searchstarter()	
+		start_block_number = searchstarter()
 		block_number = int(start_block_number)
 		databasecreate()
 		while True:
@@ -228,7 +243,7 @@ while True:
 							message = tx_message_decoded['Comment']
 							if hash_check_required == 'y':
 								hash_check = hashcheckersys(solarcoin_sig_address)
-								if hash_check[0] == 't':
+								if hash_check == True:
 									databaseupdatesys()
 									print''
 									print ('In Block {} Added or Updated System Details for System: {}').format(block_number, datalogger_id)
@@ -256,7 +271,7 @@ while True:
 								period = tx_message_decoded['t{}'.format(db_counter)]
 								enddatetime = periodtounixtime()
 								if hash_check_required == 'y':
-									if hash_check[0] == 't':
+									if hash_check[0] == True:
 										databaseupdategen()
 									else:
 										print''
@@ -279,13 +294,13 @@ while True:
 
 				except UnicodeEncodeError:
 					print ('Skipping load: Message in block {} cannot be decoded, Unicode error').format(block_number)
-					print''	                	
+					print''
 
 				else:
 					print 'No System or Generation data to load in that transaction'
 					conn = sqlite3.connect('solardetails.db')
 					c = conn.cursor()
-					c.execute('INSERT OR REPLACE INTO BLOCKTRACK VALUES (?,?);', (block_number, block_hash,)) 
+					c.execute('INSERT OR REPLACE INTO BLOCKTRACK VALUES (?,?);', (block_number, block_hash,))
 					conn.commit()
 					conn.close()
 
@@ -298,7 +313,7 @@ while True:
 				c = conn.cursor()
 				end_block_number = int(c.execute('select max(block_number) from BLOCKTRACK').fetchone()[0])
 				conn.close()
-				print 'Found {} new blocks'.format(end_block_number-start_block_number)				
+				print 'Found {} new blocks'.format(end_block_number-start_block_number)
 				break
 		print '------ Sleeping for 10 minutes, then looking for more SUNSHINE! ------'
 		print '---------- Press CTRL + c at any time to stop the Sunfinder ----------'
