@@ -168,7 +168,7 @@ if os.name == 'nt':
 	conf_location = 'C:\Users\{}\AppData\Roaming\SolarCoin\SolarCoin.conf'.format(user_account)
 elif os.name == 'posix':
 	homedir = os.environ['HOME']
-	conf_location = '/.solarcoin/solarcoin.conf'.format(homedir)
+	conf_location = '{}/.solarcoin/solarcoin.conf'.format(homedir)
 else:
 	conf_location = ''
 while True:
