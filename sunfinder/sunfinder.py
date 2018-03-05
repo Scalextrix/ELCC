@@ -271,7 +271,7 @@ while True:
 								period = tx_message_decoded['t{}'.format(db_counter)]
 								enddatetime = periodtounixtime()
 								if hash_check_required == 'y':
-									if hash_check[0] == True:
+									if hash_check == True:
 										databaseupdategen()
 									else:
 										print''
