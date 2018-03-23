@@ -21,14 +21,20 @@ import sys
 
 def longitudeconverter(longitudes):
         if longitudes[-1] == 'W':
-                longitudes = float('-'+longitudes[0:-1])
+		if longitudes[0] == '-':
+			longitudes = float(longitudes[0:-1])
+		else:
+                	longitudes = float('-'+longitudes[0:-1])
         else:
                 longitudes = float(longitudes[0:-1])
         return longitudes
 
 def latitudeconverter(latitudes):
         if latitudes[-1] == 'S':
-                latitudes = float('-'+latitudes[0:-1])
+		if latitudes[0] == '-':
+			latitudes = float(latitiudes[0:-1])
+		else:
+                	latitudes = float('-'+latitudes[0:-1])
         else:
                 latitudes = float(latitudes[0:-1])
         return latitudes
@@ -78,7 +84,7 @@ if xaxischooser == 'date':
         plt.subplot(121)
         plt.title(energysysname)
 	plt.gcf().canvas.set_window_title('ElectriCChain SunViewer v1.0')
-	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.9, top=0.9)
+	plt.subplots_adjust(left=0.06, bottom=0.25, right=0.9, top=0.9)
 	plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
 	plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
 	plt.plot(date, energyplot, 'bo')
@@ -92,14 +98,14 @@ if xaxischooser == 'date':
 	plt.tick_params('y', colors='r')
 
 elif xaxischooser == 'blocks':
-	plt.figure(num=1, figsize=(16, 12))
+	plt.figure(num=1, figsize=(10, 8))
 	thismanager = plt.get_current_fig_manager()
         img = PhotoImage(file='elcc_logo.ppm')
         thismanager.window.tk.call('wm', 'iconphoto', thismanager.window._w, img)
         plt.subplot(121)
         plt.title(energysysname)
 	plt.gcf().canvas.set_window_title('ElectriCChain SunViewer v1.0')
-	plt.subplots_adjust(left=0.06, bottom=0.13, right=0.98, top=0.9)
+	plt.subplots_adjust(left=0.06, bottom=0.15, right=0.98, top=0.9)
 	plt.plot(blocknumber, energyplot, 'bo')
 	plt.ylabel('TOTAL Energy MWh', color='b')
 	plt.tick_params('y', colors='b')
