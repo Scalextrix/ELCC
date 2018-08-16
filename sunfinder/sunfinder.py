@@ -5,7 +5,7 @@
 __author__ = "Steven Campbell AKA Scalextrix"
 __copyright__ = "Copyright 2017, Steven Campbell"
 __license__ = "The Unlicense"
-__version__ = "3.2"
+__version__ = "3.3"
 
 from datetime import datetime
 import getpass
@@ -101,7 +101,7 @@ def instruct_wallet(method, params):
 	payload = json.dumps({"method": method, "params": params})
 	headers = {'content-type': "application/json", 'cache-control': "no-cache"}
 	try:
-		response = requests.request("POST", url, data=payload, headers=headers, auth=(rpc_user, rpc_pass))
+		response = s.request("POST", url, data=payload, headers=headers, auth=(rpc_user, rpc_pass))
 		return json.loads(response.text)
 	except requests.exceptions.RequestException as e:
 		print e
@@ -202,6 +202,8 @@ if hash_check_required != 'y':
 f = open('goodchecksums.txt', 'rb')
 checksums = f.read().splitlines()
 f.close()
+
+s = requests.Session()
 
 while True:
 	print '--------- Sunfinder: Looking for SUNSHINE in the block-chain ---------'
